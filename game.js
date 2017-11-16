@@ -1,0 +1,33 @@
+D=()=>{
+x.fillRect(0,0,c.width=(w=960)*2,(h=540)*2)
+L=q=>{z=Z>.1?Z:.1,x[q?"moveTo":"lineTo"](w+X/z*w,h+Y/z*w)}
+sides=16
+depth=35
+v=Math.PI*2/sides
+s=Math.PI*2/depth
+f=(j=S(d=t/2)/2)*12
+g=C(e=t*2)*1.5
+for(m=depth;m--;){
+	for(i=sides;i--;){
+		x.beginPath()
+		q=m-t*6%1
+		O=S(s*2*j*q+d)*6-f
+		P=S(s*2*j*(q+1)+d)*6-f
+		Q=C(s*3*j*q+e)*1.5-g
+		R=C(s*3*j*(q+1)+e)*1.5-g
+		X=S(p=v*i)+O,Y=C(p)+Q,Z=q,L(1)
+		X=S(p+=v)+O,Y=C(p)+Q,Z=q,L()
+		X=S(p)+P,Y=C(p)+R,Z=q+=1,L()
+		X=S(p-=v)+P,Y=C(p)+R,Z=q,L()
+		x.strokeStyle=x.fillStyle=`hsla(${360/sides*i+q*9},10%,${70-70/depth*q}%,${.57+S(t*2)*.43}`
+		x.closePath()
+		x.lineWidth=16/Z
+		x.stroke()
+		x.fill()
+	}
+}
+	t+=1/60;
+	requestAnimationFrame(D);
+}
+t=0
+D()
