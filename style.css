@@ -1,10 +1,35 @@
 html,body{
-	margin:0px;
-	height:100vh;
+	/*margin:0px;
+	height:100vh;*/
 	overflow:hidden;
+	background-color: #222;
 }
 
-#canvas{
-	width:100%;
-	height:100%;
+#canvas {
+  display: block;
+  position: fixed;
+  top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+
+  width: 858px;
+  height: 512px;
+
+  /*//transform:translate(-50%, -25%);*/
+  image-rendering: optimizeSpeed;
+  image-rendering: pixelated;
+
+
+  /* cursor: none; */
+
+  margin: auto;
+
+}
+
+:-webkit-full-screen  {
+  width: 2140px;
+  height: 1280px;
 }
