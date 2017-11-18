@@ -6,6 +6,7 @@ function init() {
 
     t = 0;
     last = 0;
+    hit = false;
 
     // lateral facets in tube
     sides=16
@@ -28,11 +29,11 @@ function init() {
 
     //initial enemy? position -some entity traveling the opposite direction
     enemies = [];
-    let i = 50;
+    let i = 10;
     while(i--){
       enemies.push({
         z: depth -i,
-        theta: 3,
+        theta: Math.random() * (Math.PI*2) - Math.PI,
         size: Math.random() * 10 + 10
       })
     }
@@ -47,6 +48,8 @@ function init() {
     panel
     //.addHTML('stats', stats.dom)
     //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
+    .addButton("hit", function(value){hit = true})
+    .addRange("sides", 3, 30, 16, 1)
     .addRange("speed", 0, 40, 29, .01)
     .addRange("horz wave", 0, 40, 5, .01)
     .addRange("vert wave", 0, 40, 5, .01)
@@ -88,6 +91,7 @@ function loop(dt){
 function step(dt){
 
       //hook up control panel vars
+      sides = panel.getValue('sides');
       speed = panel.getValue('speed');
       horz = panel.getValue('horz wave');
       vert = panel.getValue('vert wave');
@@ -118,15 +122,18 @@ function step(dt){
   // enemyTheta += .001;
   // if(enemyZ < 0)enemyZ = depth;
   enemies.forEach(function(e){
-    e.z-=.2  ;
+    e.z-=.2;
+    if(e.z - playerZ < 1){
+      if(Math.abs(e.theta - playerTheta) < 0.5 ){
+        hit = true;
+      }
+    }
     if(e.z < 1){
       e.z = depth;
-      e.theta = Math.random() * 7;
+      e.theta = Math.random() * (Math.PI*2) - Math.PI;
       //console.log('enemies updated ' + e.z);
     }
   })
-
-
 }
 
 function draw(dt){
@@ -170,8 +177,8 @@ function draw(dt){
 
       //enemy draw routine
       cursorColor = 4;
-      for(let i = 0; i < enemies.length; i++){
-        en = enemies[i];
+      for(let ec = 0; ec < enemies.length; ec++){
+        en = enemies[ec];
         Z=en.z;
         X=S(en.theta)*.8+S(s*2*j*Z+d)*6-f
         Y=C(en.theta)*.8+C(s*3*j*Z+e)*1.5-g
@@ -220,6 +227,12 @@ function draw(dt){
   			Y=C(playerTheta)*.8+C(s*3*j*Z+e)*1.5-g
         cursorColor = playerColor;
         fcir(30);
+        if(hit){
+          cursorColor = 9;
+          fcir(100);
+          hit = false;
+          cursorColor = playerColor;
+        }
         let i = playerLength;
         while(i--){
           Z-=.1;
