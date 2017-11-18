@@ -23,8 +23,19 @@ function init() {
 
     //initial player position and key inputs
     OPZ=playerZ=2;
-    playerTheta=t=0
+    playerTheta=0;
     upkey=downkey=leftkey=rightkey=0
+
+    //initial enemy? position -some entity traveling the opposite direction
+    enemies = [];
+    let i = 50;
+    while(i--){
+      enemies.push({
+        z: depth -i,
+        theta: 3,
+        size: Math.random() * 10 + 10
+      })
+    }
 
     E = {};
     E.moveTo = moveTo;
@@ -40,8 +51,9 @@ function init() {
     .addRange("horz wave", 0, 40, 5, .01)
     .addRange("vert wave", 0, 40, 5, .01)
     .addRange("tunnelColor", 0, 63, 29, 1)
-    .addRange("playerColor", 0, 63, 18, 1)
+    .addRange("playerColor", 0, 63, 22, 1)
     .addRange("spokeColor", 0, 63, 7, 1)
+    .addRange("playerLength", 1, 30, 7, 1)
 
     loop();
 }
@@ -82,6 +94,7 @@ function step(dt){
       tunnelColor = panel.getValue('tunnelColor');
       playerColor = panel.getValue('playerColor');
       spokeColor = panel.getValue('spokeColor');
+      playerLength = panel.getValue('playerLength');
 
 
   // f & g are offsets to recenter the mouth of the tunnel
@@ -90,7 +103,7 @@ function step(dt){
   g=C(e=t/(1000/vert))*1.5
 
   //player update
-	if(playerTheta>Math.PI)playerTheta=Math.PI
+	if(playerTheta>Math.PI)playerTheta=Math.PI //limits
 	if(playerTheta<-Math.PI)playerTheta=-Math.PI
 	if(leftkey)playerTheta-=.125
 	if(rightkey)playerTheta+=.125
@@ -99,7 +112,19 @@ function step(dt){
 	if(upkey)playerZ+=.35
 	if(downkey)playerZ-=.15
 	playerZ+=(OPZ-playerZ)/50
-	playerTheta/=1.035
+	playerTheta/=1.035 //ease back to zero
+
+  // enemyZ -= .1;
+  // enemyTheta += .001;
+  // if(enemyZ < 0)enemyZ = depth;
+  enemies.forEach(function(e){
+    e.z-=.2  ;
+    if(e.z < 1){
+      e.z = depth;
+      e.theta = Math.random() * 7;
+      //console.log('enemies updated ' + e.z);
+    }
+  })
 
 
 }
@@ -143,14 +168,35 @@ function draw(dt){
     		X=S(p-=v)+P,Y=C(p)+R,Z=q,L()
     	}
 
-      //player draw routine
-      //
-      if(m==(playerZ|0)){
-  			Z=playerZ
-  			//x.lineWidth=16/Z
+      //enemy draw routine
+      cursorColor = 4;
+      for(let i = 0; i < enemies.length; i++){
+        en = enemies[i];
+        Z=en.z;
+        X=S(en.theta)*.8+S(s*2*j*Z+d)*6-f
+        Y=C(en.theta)*.8+C(s*3*j*Z+e)*1.5-g
 
-  			//
-  			ls=Math.max(150/Z,0) //whats this? don't see it used anywhere
+        fcir(en.size);
+
+      }
+      // enemies.forEach(function(e){
+      //   Z=e.z;
+      //   X=S(e.theta)*.8+S(s*2*j*Z+d)*6-f
+      //   Y=C(e.theta)*.8+C(s*3*j*Z+e)*1.5-g
+      //
+      //   fcir(e.size);
+      //
+      // })
+
+      cursorColor = tunnelColor;
+
+
+
+      //player draw routine
+      if(m==(playerZ|0)){ //for the draw order! I get it now -Ryan
+  			Z=playerZ
+
+  			ls=Math.max(150/Z,0) //whats this? don't see it used anywhere -Ryan
 
   			//player position
   			X=S(playerTheta)*.8+S(s*2*j*Z+d)*6-f
@@ -165,18 +211,33 @@ function draw(dt){
   			X+=S(playerTheta+Math.PI*4/3),Y+=C(playerTheta+Math.PI*4/3),L()
 
         //draw player ball
-        //player position reset -to draw in front? may be better way to handle this
-  			X=S(playerTheta)*.8+S(s*2*j*Z+d)*6-f
+        //renderTarget lets you draw to another page of the buffer.
+        //we'll draw player to another page and composite it back
+        //so the tunnel edges don't overdraw
+        renderTarget = BUFFER; //bufer is ahead one screens worth of data
+        clear();
+        X=S(playerTheta)*.8+S(s*2*j*Z+d)*6-f
   			Y=C(playerTheta)*.8+C(s*3*j*Z+e)*1.5-g
         cursorColor = playerColor;
         fcir(30);
+        let i = playerLength;
+        while(i--){
+          Z-=.1;
+          X=S(playerTheta)*.8+S(s*2*j*Z+d)*6-f
+    			Y=C(playerTheta)*.8+C(s*3*j*Z+e)*1.5-g
+          cursorColor-=1;
+          fcir(30);
+        }
+
 
         //set cursor back to tunnelColor, uncomment for potential feature/fun?
         cursorColor = tunnelColor;
+        renderTarget = SCREEN;
   		}
     }
-
-}
+renderSource = BUFFER;
+spr(); //default to copying the whole screen
+}//end draw()
 
 // function to move to or draw a line to a 3D-projected coordinate
 // relies on pre-set values for globals X, Y, and Z
