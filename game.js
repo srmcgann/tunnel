@@ -58,7 +58,7 @@ D=()=>{
 			x.closePath()
 			
 			// lineWidth diminishes by distance
-			x.lineWidth=16/Z
+			x.lineWidth=32/(1+Z)
 			
 			// draw lines
 			x.stroke()
