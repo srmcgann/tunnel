@@ -165,6 +165,9 @@ function draw(dt){
   			X+=S(playerTheta+Math.PI*4/3),Y+=C(playerTheta+Math.PI*4/3),L()
 
         //draw player ball
+        //player position reset -to draw in front? may be better way to handle this
+  			X=S(playerTheta)*.8+S(s*2*j*Z+d)*6-f
+  			Y=C(playerTheta)*.8+C(s*3*j*Z+e)*1.5-g
         cursorColor = playerColor;
         fcir(30);
 
