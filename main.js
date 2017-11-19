@@ -4,7 +4,7 @@ function init() {
     document.body.appendChild( stats.dom );
 
     spritesheet = new Image();
-    spritesheet.src = "/assets/sprites.png";
+    spritesheet.src = "assets/sprites.png";
 
     spritesheet.onload = function(){
       imageToRam(spritesheet, SPRITES);
