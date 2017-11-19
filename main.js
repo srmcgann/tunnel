@@ -8,7 +8,7 @@ function init() {
 
     spritesheet.onload = function(){
       imageToRam(spritesheet, SPRITES);
-      console.log('sprites loaded');
+      console.log('sprites loaded -master branch');
     }
 
     sprites = {
