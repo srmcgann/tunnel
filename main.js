@@ -147,7 +147,7 @@ function step(dt){
     }
     //reset position to back of tunnel if behind view
     if(e.z < 1){
-      e.z = depth;
+      e.z+=40;
       e.theta = Math.random() * (Math.PI*2) - Math.PI;
       //console.log('enemies updated ' + e.z);
     }
