@@ -3,6 +3,19 @@ function init() {
     stats = new Stats();
     document.body.appendChild( stats.dom );
 
+    spritesheet = new Image();
+    spritesheet.src = "/assets/sprites.png";
+
+    spritesheet.onload = function(){
+      imageToRam(spritesheet, SPRITES);
+      console.log('sprites loaded');
+    }
+
+    sprites = {
+      lightmap: { x:0, y:0, width: 63, height: 32 },
+      purpleBall: { x:64, y:0, width: 30, height: 30}
+    }
+
 
     t = 0;
     last = 0;
@@ -27,12 +40,12 @@ function init() {
     playerTheta=0;
     upkey=downkey=leftkey=rightkey=0
 
-    //initial enemy? position -some entity traveling the opposite direction
+    //initial enemy? position -some random entities traveling the opposite direction
     enemies = [];
-    let i = 10;
+    let i = 50;
     while(i--){
       enemies.push({
-        z: depth -i,
+        z: depth + i * 8,
         theta: Math.random() * (Math.PI*2) - Math.PI,
         size: Math.random() * 10 + 10
       })
@@ -43,7 +56,7 @@ function init() {
     E.lineTo = lineTo;
 
     //setup fiddle knobs
-    panel= QuickSettings.create(10, 10, 'controls');
+    panel= QuickSettings.create(10, 60, 'controls');
 
     panel
     //.addHTML('stats', stats.dom)
@@ -51,10 +64,10 @@ function init() {
     .addButton("hit", function(value){hit = true})
     .addRange("sides", 3, 30, 16, 1)
     .addRange("speed", 0, 40, 29, .01)
-    .addRange("horz wave", 0, 40, 5, .01)
-    .addRange("vert wave", 0, 40, 5, .01)
+    .addRange("horz wave", 0, 40, .5, .01)
+    .addRange("vert wave", 0, 40, 7.13, .01)
     .addRange("tunnelColor", 0, 63, 29, 1)
-    .addRange("playerColor", 0, 63, 22, 1)
+    .addRange("playerColor", 0, 63, 14, 1)
     .addRange("spokeColor", 0, 63, 7, 1)
     .addRange("playerLength", 1, 30, 7, 1)
 
@@ -121,13 +134,19 @@ function step(dt){
   // enemyZ -= .1;
   // enemyTheta += .001;
   // if(enemyZ < 0)enemyZ = depth;
+
+  enemies.sort(function(a,b){return b.z - a.z});
   enemies.forEach(function(e){
-    e.z-=.2;
-    if(e.z - playerZ < 1){
-      if(Math.abs(e.theta - playerTheta) < 0.5 ){
+    //move down the tunnel
+    e.z-=.08;
+
+    //check for collision with player
+    if(e.z - playerZ < 0.2){
+      if(Math.abs(e.theta - playerTheta) < 0.2 ){
         hit = true;
       }
     }
+    //reset position to back of tunnel if behind view
     if(e.z < 1){
       e.z = depth;
       e.theta = Math.random() * (Math.PI*2) - Math.PI;
@@ -180,24 +199,18 @@ function draw(dt){
       for(let ec = 0; ec < enemies.length; ec++){
         en = enemies[ec];
         Z=en.z;
-        X=S(en.theta)*.8+S(s*2*j*Z+d)*6-f
-        Y=C(en.theta)*.8+C(s*3*j*Z+e)*1.5-g
 
-        fcir(en.size);
+        if(Z < depth){
+          X=S(en.theta)*.8+S(s*2*j*Z+d)*6-f
+          Y=C(en.theta)*.8+C(s*3*j*Z+e)*1.5-g
 
+          //fcir(en.size);
+          renderSource = SPRITES;
+          spr3d(sprites.purpleBall, 70);
+        }
       }
-      // enemies.forEach(function(e){
-      //   Z=e.z;
-      //   X=S(e.theta)*.8+S(s*2*j*Z+d)*6-f
-      //   Y=C(e.theta)*.8+C(s*3*j*Z+e)*1.5-g
-      //
-      //   fcir(e.size);
-      //
-      // })
 
       cursorColor = tunnelColor;
-
-
 
       //player draw routine
       if(m==(playerZ|0)){ //for the draw order! I get it now -Ryan
@@ -221,7 +234,7 @@ function draw(dt){
         //renderTarget lets you draw to another page of the buffer.
         //we'll draw player to another page and composite it back
         //so the tunnel edges don't overdraw
-        renderTarget = BUFFER; //bufer is ahead one screens worth of data
+        renderTarget = BUFFER; //buffer is ahead one screens worth of data
         clear();
         X=S(playerTheta)*.8+S(s*2*j*Z+d)*6-f
   			Y=C(playerTheta)*.8+C(s*3*j*Z+e)*1.5-g
@@ -243,13 +256,15 @@ function draw(dt){
         }
 
 
-        //set cursor back to tunnelColor, uncomment for potential feature/fun?
+        //set cursor back to tunnelColor, comment out for potential feature/fun?
         cursorColor = tunnelColor;
         renderTarget = SCREEN;
   		}
     }
 renderSource = BUFFER;
-spr(); //default to copying the whole screen
+spr(); //default to copying the whole screen, from the buffer we drew player to
+
+renderSource = SPRITES;
 }//end draw()
 
 // function to move to or draw a line to a 3D-projected coordinate
@@ -271,6 +286,18 @@ fcir=q=>{
     z=Z>.1?Z:.1;
     //using passed in value for diameter, otherwise defaults to 16
     fillCircle( w+X/z*w, h+Y/z*w, (q?q:16)/z, cursorColor)
+}
+
+function spr3d(sprite, scale=1){
+  z=Z>.1?Z:.1;
+  dstX = (w+X/z*w)//-sprite.width/2*scale/z;
+  dstY = (h+Y/z*w)//-sprite.height/2*scale/z;
+  scaleZ = scale/z;
+
+  //sspr(sx = 0, sy = 0, sw = 16, sh = 16, x=0, y=0, dw=16, dh=16){
+  //spr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w )
+  sspr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w, scaleZ, scaleZ);
+
 }
 
 onkeydown=e=>{
