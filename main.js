@@ -51,6 +51,8 @@ function init() {
       })
     }
 
+
+
     E = {};
     E.moveTo = moveTo;
     E.lineTo = lineTo;
@@ -131,9 +133,6 @@ function step(dt){
 	playerZ+=(OPZ-playerZ)/50
 	playerTheta/=1.035 //ease back to zero
 
-  // enemyZ -= .1;
-  // enemyTheta += .001;
-  // if(enemyZ < 0)enemyZ = depth;
 
   enemies.sort(function(a,b){return b.z - a.z});
   enemies.forEach(function(e){
@@ -194,13 +193,14 @@ function draw(dt){
     		X=S(p-=v)+P,Y=C(p)+R,Z=q,L()
     	}
 
+
       //enemy draw routine
       cursorColor = 4;
       for(let ec = 0; ec < enemies.length; ec++){
         en = enemies[ec];
         Z=en.z;
 
-        if(Z < depth){
+        if(Z < 20){
           X=S(en.theta)*.8+S(s*2*j*Z+d)*6-f
           Y=C(en.theta)*.8+C(s*3*j*Z+e)*1.5-g
 
@@ -298,6 +298,11 @@ function spr3d(sprite, scale=1){
   //spr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w )
   sspr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w, scaleZ, scaleZ);
 
+}
+
+pset3d=q=>{
+    z=Z>.1?Z:.1;
+    pset( w+X/z*w, h+Y/z*w, cursorColor )
 }
 
 onkeydown=e=>{
