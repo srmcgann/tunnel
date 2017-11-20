@@ -41,7 +41,7 @@ function init() {
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=0
   shotTimer=0;
-  shotInterval=10;
+  shotInterval=10; // smaller is faster
   
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -240,8 +240,8 @@ function draw(dt){
     for(let i=bullets.length;i--;){
       Z=bullets[i].Z
       if(m==(Z|0)){
-        X=S(bullets[i].theta)*.8+S(s*2*j*Z+d)*4-f
-        Y=C(bullets[i].theta)*.8+C(s*3*j*Z+e)*.5-g
+        X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
+        Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
         fcir(10);
       }
     }
