@@ -178,7 +178,7 @@ function step(dt){
     }else{
       // blow up enemies
       for(let m=0;m<enemies.length;++m){
-        if(i>bullets.length-1){
+        if(i<bullets.length){
           if(Math.abs(bullets[i].Z-enemies[m].z)<.2){
             // put bullet thetas into sane range
             while(bullets[i].theta>Math.PI)bullets[i].theta-=Math.PI*2
