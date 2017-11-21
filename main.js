@@ -47,7 +47,8 @@ function init() {
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=0
   shotTimer=0;
-  shotInterval=3; // smaller is faster
+  shotInterval=10; // smaller is faster
+  gameInPlay=1
 
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -61,6 +62,7 @@ function init() {
 
   bullets = [];
   splosions = [];
+  gunsActive = Array(99).fill(1);
 
   E = {};
   E.moveTo = moveTo;
@@ -88,7 +90,7 @@ function init() {
 
 function spawnSplosion(X,Y,Z){
   for(let i=99;i--;){
-    let splosionVelocity=Math.random()*.1
+    let splosionVelocity=Math.random()*.13
     let p1=Math.PI*2*Math.random()
     let p2=Math.PI*Math.random()
     let VX=S(p1)*S(p2)*splosionVelocity
@@ -166,11 +168,25 @@ function step(dt){
     e.z-=.08;
 
     //check for collision with player
-    // if(e.z - playerZ < 0.2){
-    //   if(Math.abs(e.theta - playerTheta) < 0.2 ){
-    //     hit = true;
-    //   }
-    // }
+    if(e.z - playerZ < 0.2){
+      gameInPlay=0
+      for(let i = 0; i <= spokes; ++i){
+        if(gunsActive[i]){
+          gameInPlay=1
+          let p=playerTheta+Math.PI*2/spokes*i
+          while(p>Math.PI)p-=Math.PI*2
+          while(p<-Math.PI)p+=Math.PI*2
+          if(Math.abs(e.theta - p) < 0.2 ){
+            X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+t/(1000/vert))*.5-g
+            console.log(e)
+            X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p)
+            spawnSplosion(X,Y,playerZ)
+            gunsActive[i]=0
+          }
+        }
+      }
+    }
+        
     //reset position to back of tunnel if behind view
     if(e.z < 1){
       e.z = depth;
@@ -179,14 +195,20 @@ function step(dt){
     }
   })
 
+  if(!gameInPlay){
+    spawnSplosion(20-Math.random()*40,20-Math.random()*40,Math.random()*40)
+  }
+  
   // shoot guns
   if(spacekey && shotTimer<t){
     shotTimer=t+shotInterval
     for(i=spokes;i--;){
-      bullets.push({
-        Z:playerZ,
-        theta:playerTheta+Math.PI*2/spokes*i
-      });
+      if(gunsActive[i]){
+        bullets.push({
+          Z:playerZ,
+          theta:playerTheta+Math.PI*2/spokes*i
+        });
+      }
     }
   }
 
@@ -220,9 +242,9 @@ function step(dt){
   //handle splosions
   for(let i=0;i<splosions.length;++i){
     splosions[i].X+=splosions[i].VX
-    splosions[i].Y+=splosions[i].VY+=.006 //gravity pulls particles down like a firework
+    splosions[i].Y+=splosions[i].VY+=.003 //gravity pulls particles down like a firework
     splosions[i].Z+=splosions[i].VZ
-    splosions[i].S-=.1 // particle size diminishes
+    splosions[i].S-=.075 // particle size diminishes
     if(splosions[i].S<.05)splosions.splice(i,1)
   }
 }
@@ -282,8 +304,6 @@ function draw(dt){
       }
     }
 
-
-
     //draw bullets
     cursorColor = 10;
     for(let i=bullets.length;i--;){
@@ -321,9 +341,11 @@ function draw(dt){
       Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
         L(1) //moveto
       for(let i = 0; i <= spokes; ++i){
-        X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
-        X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p),L()
-        rspr3d(sprites.laserCannon, 1.5, p)
+        if(gunsActive[i]){
+          X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
+          X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p),L()
+          rspr3d(sprites.laserCannon, 1.5, p)
+        }
       }
       // //player position
       // X=S(playerTheta)+S(s*2*j*Z+d)*4-f
