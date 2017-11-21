@@ -72,15 +72,14 @@ function init() {
   panel
   //.addHTML('stats', stats.dom)
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
-  .addButton("hit", function(value){hit = true})
-  .addRange("sides", 3, 30, 16, 1)
   .addRange("speed", 0, 40, 29, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("tunnelColor", 0, 63, 20, 1)
-  .addRange("splosionColor", 0, 190, 20, 1)
+  .addRange("splosionColor", 0, 63, 9, 1)
   .addRange("playerColor", 0, 63, 14, 1)
   .addRange("spokeColor", 0, 63, 7, 1)
+  .addRange("Spokes", 1, 9, 3, 1)
   .addRange("playerLength", 1, 30, 7, 1)
 
   loop();
@@ -129,7 +128,6 @@ function loop(dt){
 function step(dt){
 
   //hook up control panel vars
-  sides = panel.getValue('sides');
   speed = panel.getValue('speed');
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
@@ -138,6 +136,7 @@ function step(dt){
   spokeColor = panel.getValue('spokeColor');
   splosionColor = panel.getValue('splosionColor');
   playerLength = panel.getValue('playerLength');
+  spokes = panel.getValue('Spokes');
 
 
   // continually spawn enemies
@@ -167,11 +166,11 @@ function step(dt){
     e.z-=.08;
 
     //check for collision with player
-    if(e.z - playerZ < 0.2){
-      if(Math.abs(e.theta - playerTheta) < 0.2 ){
-        hit = true;
-      }
-    }
+    // if(e.z - playerZ < 0.2){
+    //   if(Math.abs(e.theta - playerTheta) < 0.2 ){
+    //     hit = true;
+    //   }
+    // }
     //reset position to back of tunnel if behind view
     if(e.z < 1){
       e.z = depth;
@@ -183,10 +182,10 @@ function step(dt){
   // shoot guns
   if(spacekey && shotTimer<t){
     shotTimer=t+shotInterval
-    for(i=3;i--;){
+    for(i=spokes;i--;){
       bullets.push({
         Z:playerZ,
-        theta:playerTheta+Math.PI*2/3*i
+        theta:playerTheta+Math.PI*2/spokes*i
       });
     }
   }
@@ -255,7 +254,7 @@ function draw(dt){
 
       // first point is a moveTo (L(1))
       X=S(p=v*i)+O,Y=C(p)+Q,Z=q;
-      lutcolor = (Z.map(2,10, 15,29)|0).clamp(15, 29);
+      lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 29);
       cursorColor = LUT[lutcolor][55];
       L(1);
 
@@ -279,7 +278,7 @@ function draw(dt){
       if(m==(Z|0)){
         X=splosions[i].X
         Y=splosions[i].Y
-        fcir(10);
+        pset3d();
       }
     }
 
@@ -315,30 +314,33 @@ function draw(dt){
 
     //player draw routine
     if(m==(playerZ|0)){ //for the draw order! I get it now -Ryan
-      Z=playerZ
-
-      //player position
-      X=S(playerTheta)+S(s*2*j*Z+d)*4-f
-      Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
-
-      //draw player tunnel spokes
-      L(1) //moveto
       cursorColor = spokeColor;
-      X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L()
-      X+=S(playerTheta+Math.PI*2/3),Y+=C(playerTheta+Math.PI*2/3),L()
-      rspr3d(sprites.laserCannon, 1.5)
-      X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
-      X+=S(playerTheta+Math.PI*4/3),Y+=C(playerTheta+Math.PI*4/3),L()
-      rspr3d(sprites.laserCannon, 1.5)
-
-      //renderTarget lets you draw to another page of the buffer.
-      //we'll draw player to another page and composite it back
-      //so the tunnel edges don't overdraw
-      renderTarget = BUFFER; //buffer is ahead one screens worth of data
-      clear();
+        //player position
+      Z=playerZ
       X=S(playerTheta)+S(s*2*j*Z+d)*4-f
       Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
-      rspr3d(sprites.laserCannon, 1.5)
+        L(1) //moveto
+      for(let i = 0; i <= spokes; ++i){
+        X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
+        X+=S(playerTheta+Math.PI*2/spokes*i),Y+=C(playerTheta+Math.PI*2/spokes*i),L()
+        rspr3d(sprites.laserCannon, 1.5)
+      }
+      // //player position
+      // X=S(playerTheta)+S(s*2*j*Z+d)*4-f
+      // Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
+      //
+      // //draw player tunnel spokes
+      // L(1) //moveto
+      // cursorColor = spokeColor;
+      // X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L()
+      // X+=S(playerTheta+Math.PI*2/3),Y+=C(playerTheta+Math.PI*2/3),L()
+      // rspr3d(sprites.laserCannon, 1.5)
+      // X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
+      // X+=S(playerTheta+Math.PI*4/3),Y+=C(playerTheta+Math.PI*4/3),L()
+      // rspr3d(sprites.laserCannon, 1.5)
+      // X=S(playerTheta)+S(s*2*j*Z+d)*4-f
+      // Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
+      // rspr3d(sprites.laserCannon, 1.5)
 
       //set cursor back to tunnelColor, comment out for potential feature/fun?
       cursorColor = tunnelColor;
