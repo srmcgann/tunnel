@@ -20,7 +20,7 @@ function init() {
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
     purpleBall: { x:64, y:0, width: 30, height: 30},
-    laserCannon: { x:94, y:0, width: 34, height: 34}
+    laserCannon: { x:94, y:0, width: 31, height: 31}
   }
 
 
@@ -322,8 +322,8 @@ function draw(dt){
         L(1) //moveto
       for(let i = 0; i <= spokes; ++i){
         X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
-        X+=S(playerTheta+Math.PI*2/spokes*i),Y+=C(playerTheta+Math.PI*2/spokes*i),L()
-        rspr3d(sprites.laserCannon, 1.5)
+        X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p),L()
+        rspr3d(sprites.laserCannon, 1.5, p)
       }
       // //player position
       // X=S(playerTheta)+S(s*2*j*Z+d)*4-f
@@ -387,12 +387,12 @@ function spr3d(sprite, scale=1){
 
 }
 
-function rspr3d(sprite, scale=1){
+function rspr3d(sprite, scale=1, theta){
   z=Z>.1?Z:.1;
   dstX = (w+X/z*w);
   dstY = (h+Y/z*w);
   scaleZ = scale/z;
-  rspr(sprite.x, sprite.y, sprite.width, sprite.height, dstX, dstY, scaleZ, playerTheta);
+  rspr(sprite.x, sprite.y, sprite.width, sprite.height, dstX, dstY, scaleZ, theta);
 }
 
 pset3d=q=>{
