@@ -5,7 +5,7 @@ function init() {
 
   spritesheet = new Image();
   spritesheet.src = "assets/sprites.png";
-
+  lutcolor = 15;
   LUT = [];
 
   spritesheet.onload = function(){
@@ -47,7 +47,7 @@ function init() {
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=0
   shotTimer=0;
-  shotInterval=3; // smaller is faster
+  shotInterval=10; // smaller is faster
 
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -60,7 +60,6 @@ function init() {
   }
 
   bullets = [];
-  splosions = [];
 
   E = {};
   E.moveTo = moveTo;
@@ -72,31 +71,13 @@ function init() {
   panel
   //.addHTML('stats', stats.dom)
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
-  .addButton("hit", function(value){hit = true})
-  .addRange("sides", 3, 30, 16, 1)
   .addRange("speed", 0, 40, 29, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
-  .addRange("tunnelColor", 0, 63, 20, 1)
-  .addRange("splosionColor", 0, 190, 20, 1)
-  .addRange("playerColor", 0, 63, 14, 1)
+  .addRange("tunnelColor", 0, 63, 29, 1)
   .addRange("spokeColor", 0, 63, 7, 1)
-  .addRange("playerLength", 1, 30, 7, 1)
 
-  loop();
-}
-
-
-function spawnSplosion(X,Y,Z){
-  for(let i=99;i--;){
-    let splosionVelocity=Math.random()*.1
-    let p1=Math.PI*2*Math.random()
-    let p2=Math.PI*Math.random()
-    let VX=S(p1)*S(p2)*splosionVelocity
-    let VY=C(p1)*S(p2)*splosionVelocity
-    let VZ=C(p2)*splosionVelocity
-    splosions.push({X,Y,Z,VX,VY,VZ,S:2+Math.random()})
-  }
+  //loop();
 }
 
 function loop(dt){
@@ -129,19 +110,15 @@ function loop(dt){
 function step(dt){
 
   //hook up control panel vars
-  sides = panel.getValue('sides');
   speed = panel.getValue('speed');
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
   tunnelColor = panel.getValue('tunnelColor');
-  playerColor = panel.getValue('playerColor');
   spokeColor = panel.getValue('spokeColor');
-  splosionColor = panel.getValue('splosionColor');
-  playerLength = panel.getValue('playerLength');
 
 
   // continually spawn enemies
-  if(t%20<1 && enemies.length<300)spawnEnemy();
+  if(t%10<1 && enemies.length<300)spawnEnemy();
 
   // f & g are offsets to recenter the mouth of the tunnel
   // they coincide with the formulas below and should not be changed independently
@@ -162,23 +139,22 @@ function step(dt){
 
 
   enemies.sort(function(a,b){return b.z - a.z});
-  enemies.forEach(function(e){
+  for(let i = 0; i < enemies.length; ++i){
     //move down the tunnel
-    e.z-=.08;
+    ;
+    enemies[i].z-=.08;
 
     //check for collision with player
-    if(e.z - playerZ < 0.2){
-      if(Math.abs(e.theta - playerTheta) < 0.2 ){
+    if(enemies[i].z - playerZ < 0.2){
+      if(Math.abs(enemies[i].theta - playerTheta) < 0.2 ){
         hit = true;
       }
     }
     //reset position to back of tunnel if behind view
     if(e.z < 1){
-      e.z = depth;
-      e.theta = Math.random() * (Math.PI*2) - Math.PI;
-      //console.log('enemies updated ' + e.z);
+      enemies.splice(i, 1);
     }
-  })
+  }
 
   // shoot guns
   if(spacekey && shotTimer<t){
@@ -206,9 +182,6 @@ function step(dt){
             while(bullets[i].theta>Math.PI)bullets[i].theta-=Math.PI*2
             while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
             if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
-              X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
-              Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
-              spawnSplosion(X,Y,bullets[i].Z)
               enemies.splice(m,1)
               bullets.splice(i,1)
             }
@@ -217,22 +190,12 @@ function step(dt){
       }
     }
   }
-
-  //handle splosions
-  for(let i=0;i<splosions.length;++i){
-    splosions[i].X+=splosions[i].VX
-    splosions[i].Y+=splosions[i].VY+=.006 //gravity pulls particles down like a firework
-    splosions[i].Z+=splosions[i].VZ
-    splosions[i].S-=.1 // particle size diminishes
-    if(splosions[i].S<.05)splosions.splice(i,1)
-  }
 }
 
 function draw(dt){
 
   clear(0);
-  cursorColor = tunnelColor;
-
+  //cursorColor = tunnelColor;
   // reduced intensity of vertical waves -Scott
 
   //tunnel draw routine
@@ -240,7 +203,7 @@ function draw(dt){
     for(i=sides;i--;){
 
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
-      q=m-t/(1000/speed)*2%1
+      q=m-t/(1000/speed)*3%1
       //console.log(q);
 
       // O & P are the horizontal (X) curvature of the tunnel.
@@ -272,46 +235,38 @@ function draw(dt){
     }
 
 
-    //draw splosions
-    cursorColor = splosionColor;
-    for(let i=splosions.length;i--;){
-      Z=splosions[i].Z
-      if(m==(Z|0)){
-        X=splosions[i].X
-        Y=splosions[i].Y
-        fcir(10);
-      }
-    }
-
-
-
     //draw bullets
-    cursorColor = 10;
     for(let i=bullets.length;i--;){
+
       Z=bullets[i].Z
       if(m==(Z|0)){
         X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
         Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
+        lutcolor = (Z.map(5,15, 15,29)|0).clamp(15, 29);
+        cursorColor = LUT[lutcolor][10];
         fcir(10);
       }
     }
 
     //enemy draw routine
-    cursorColor = 4;
     for(let ec = 0; ec < enemies.length; ec++){
       en = enemies[ec];
       Z=en.z;
+      //oops. the whole enemy draw routine was being called m times per frame.
+      //let's call it only once per frame per enemy
       if(m==(Z|0)){ //for proper drawing order ;)
           X=S(en.theta)*.8+S(s*2*j*Z+d)*4-f
           Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5-g
 
           //fcir(en.size);
           renderSource = SPRITES;
+          lutcolor = (Z.map(2,10, 15,29)|0).clamp(15, 29);
+          pal = LUT[lutcolor];
           spr3d(sprites.purpleBall, 70);
+          //pal = palDefault;
       }
     }
-
-    cursorColor = tunnelColor;
+    //cursorColor = tunnelColor;
 
     //player draw routine
     if(m==(playerZ|0)){ //for the draw order! I get it now -Ryan
@@ -373,15 +328,14 @@ fcir=q=>{
 }
 
 function spr3d(sprite, scale=1){
-  //z=Z>.1?Z:.1;
-  z=Z
-  dstX = (w+X/z*w)-sprite.width*scale/z/70;
-  dstY = (h+Y/z*w)-sprite.height*scale/z/70;
+  z=Z>.1?Z:.1;
+  dstX = (w+X/z*w)-sprite.width/2*scale/z;
+  dstY = (h+Y/z*w)-sprite.height/2*scale/z;
   scaleZ = scale/z;
 
   //sspr(sx = 0, sy = 0, sw = 16, sh = 16, x=0, y=0, dw=16, dh=16){
   //spr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w )
-  sspr(sprite.x, sprite.y, sprite.width, sprite.height, dstX, dstY, scaleZ, scaleZ);
+  sspr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w, scaleZ, scaleZ);
 
 }
 
