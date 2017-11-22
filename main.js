@@ -80,8 +80,8 @@ function init() {
   .addRange("splosionColor", 0, 63, 9, 1)
   .addRange("spokeColor", 0, 63, 7, 1)
   .addRange("Spokes", 1, 9, 3, 1)
-  .addRange("bump Z", 1, depth, 5, 1)
-  .addRange("bump Theta", 1, sides, 7, 1)
+  .addRange("bump Z", 1, depth, 4, 1)
+  .addRange("bump Theta", 1, sides, 15, 1)
 
   loop();
 }
@@ -295,13 +295,14 @@ function draw(dt){
 
 
     //draw splosions
-    cursorColor = splosionColor;
+
     for(let i=splosions.length;i--;){
       Z=splosions[i].Z
       if(m==(Z|0)){
+        cursorColor = Math.round(splosions[i].S.map(0,1.6,0,9).clamp(0, 9))
         X=splosions[i].X
         Y=splosions[i].Y
-        pset3d();
+        fcir(splosions[i].S*5);
       }
     }
 
