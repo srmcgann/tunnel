@@ -52,11 +52,12 @@ function init() {
   //initial player position and key inputs
   OPZ=playerZ=2;
   playerTheta=0;
-  spacekey=upkey=downkey=leftkey=rightkey=0
+  spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=0
   shotTimer=0;
   shotInterval=2; // smaller is faster
   gameInPlay=1
   bumpVar=0
+  squeeze=1
 
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -65,7 +66,7 @@ function init() {
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
       size: 15,
-      health: 20
+      health: 40
     })
   }
 
@@ -86,7 +87,8 @@ function init() {
   panel= QuickSettings.create(10, 60, 'controls');
 
   panel
-  //.addHTML('stats', stats.dom)
+  .hideAllTitles()
+  .setKey("h")
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
   .addRange("speed", 0, 40, 29, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
@@ -152,6 +154,14 @@ function step(dt){
   spokes = panel.getValue('Spokes');
   bumpZ = panel.getValue('bump Z');
   bumpTheta = panel.getValue('bump Theta');
+  
+  //squeeze the guns together when C is pressed
+  if(ckey){
+    squeeze = (squeeze - .05).clamp(.01, 1)
+  }else{
+    squeeze = (squeeze + .05).clamp(.01, 1)
+    
+  }
 
 
   // continually spawn enemies
@@ -169,10 +179,10 @@ function step(dt){
   //player update
 	if(leftkey)playerTheta+=.05
 	if(rightkey)playerTheta-=.05
-	if(playerZ>depth/2)playerZ=depth/2
-	if(playerZ<1)playerZ=1
-	if(upkey)playerZ+=.35
-	if(downkey)playerZ-=.15
+	//if(playerZ>depth/2)playerZ=depth/2
+	//if(playerZ<1)playerZ=1
+	//if(upkey)playerZ+=.35
+	//if(downkey)playerZ-=.15
 	playerZ+=(OPZ-playerZ)/50
 
 
@@ -192,7 +202,6 @@ function step(dt){
           while(p<-Math.PI)p+=Math.PI*2
           if(Math.abs(e.theta - p) < 0.2 ){
             X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+t/(1000/vert))*.5-g
-            //console.log(e)
             X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p)
             spawnSplosion(X,Y,playerZ)
             gunsActive[i]=0
@@ -214,13 +223,13 @@ function step(dt){
   }
 
   // shoot guns
-  if(spacekey && shotTimer<t){
+  if(spacekey || xkey && shotTimer<t){
     shotTimer=t+shotInterval
     for(i=spokes;i--;){
       if(gunsActive[i]){
         bullets.push({
           Z:playerZ,
-          theta:playerTheta+Math.PI*2/spokes*i
+          theta:playerTheta+(Math.PI*2/spokes*i)*squeeze
         });
       }
     }
@@ -261,7 +270,7 @@ function step(dt){
   //handle splosions
   for(let i=0;i<splosions.length;++i){
     splosions[i].X+=splosions[i].VX
-    splosions[i].Y+=splosions[i].VY+=.003 //gravity pulls particles down like a firework
+    splosions[i].Y+=splosions[i].VY//+=.003 //gravity pulls particles down like a firework
     splosions[i].Z+=splosions[i].VZ
     splosions[i].S-=.075 // particle size diminishes
     if(splosions[i].S<.05)splosions.splice(i,1)
@@ -293,8 +302,9 @@ function draw(dt){
       let bump = 1
       for(let k=0;k<bumps.length;k++){
         if(m==bumps[k].Z|0 && i==bumps[k].theta){
-          bump=1+C(t/19+bumps[k].theta)/2
-          bump=1+C(19+bumps[k].theta)/2
+          //bump=1+C(t/19+bumps[k].theta)/2
+          //bump=1+C(19+bumps[k].theta)/2
+          bump=.9;
           //bump=bumps[k].b
         }
       }
@@ -314,7 +324,7 @@ function draw(dt){
 
       //modify the color by Z with LUT, first sprite in sheet
       lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 28);
-      cursorColor = LUT[lutcolor][55];
+      cursorColor = bump!=1 ? LUT[lutcolor][22] : LUT[lutcolor][55];
       L(1);
       X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q,L()
       X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1,L()
@@ -373,7 +383,7 @@ function draw(dt){
 
 
     //player draw routine
-    if(m==(playerZ|0)){ //for the draw order! I get it now -Ryan
+    if(m==(playerZ|0)){ 
       cursorColor = spokeColor;
         //player position
       Z=playerZ
@@ -383,7 +393,7 @@ function draw(dt){
       for(let i = 0; i <= spokes; ++i){
         if(gunsActive[i]){
           X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
-          X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p),L()
+          X+=S( p=playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p),L()
           rspr3d(sprites.laserCannon, 1.5, p)
         }
       }
@@ -459,6 +469,9 @@ onkeydown=e=>{
 		case 38:upkey=1;break;
 		case 39:rightkey=1;break;
 		case 40:downkey=1;break;
+		case 88:xkey=1;break;
+		case 67:ckey=1;break;
+		
 	}
 }
 onkeyup=e=>{
@@ -468,6 +481,8 @@ onkeyup=e=>{
 		case 38:upkey=0;break;
 		case 39:rightkey=0;break;
 		case 40:downkey=0;break;
+		case 88:xkey=0;break;
+		case 67:ckey=0;break;
 	}
 }
 
