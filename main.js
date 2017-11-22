@@ -65,7 +65,7 @@ function init() {
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
       size: 15,
-      health: 30
+      health: 20
     })
   }
 
@@ -100,8 +100,8 @@ function init() {
   loop();
 }
 
-function spawnSplosion(X,Y,Z){
-  for(let i=99;i--;){
+function spawnSplosion(X,Y,Z,a=99){
+  for(let i=a;i--;){
     let splosionVelocity=Math.random()*.13
     let p1=Math.PI*2*Math.random()
     let p2=Math.PI*Math.random()
@@ -244,7 +244,7 @@ function step(dt){
               X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
               Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
               enemies[m].health-=1
-              spawnSplosion(X,Y,bullets[i].Z)
+              spawnSplosion(X,Y,bullets[i].Z,5)
               if(enemies[m].health < 1){
                 spawnSplosion(X,Y,bullets[i].Z)
                 enemies.splice(m,1)
