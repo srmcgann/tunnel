@@ -66,7 +66,7 @@ function init() {
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
       size: 15,
-      health: 40
+      health: 20
     })
   }
 
@@ -76,6 +76,7 @@ function init() {
   bumps=[];
 
   for(let i=0;i<depth;++i){
+    bumps.push({Z:i,theta:Math.random()*sides|0,b:Math.random()*.5-1});
     bumps.push({Z:i,theta:Math.random()*sides|0,b:Math.random()*.5-1});
   }
 
