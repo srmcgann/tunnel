@@ -188,12 +188,12 @@ function step(dt){
     if(e.z < 1){
       e.z = depth;
       e.theta = Math.random() * (Math.PI*2) - Math.PI;
-      //console.log('enemies updated ' + e.z);
     }
   })
 
   if(!gameInPlay){
     spawnSplosion(20-Math.random()*40,20-Math.random()*40,Math.random()*40)
+
   }
 
   // shoot guns
@@ -259,7 +259,7 @@ function draw(dt){
 
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
       q=m-t/(1000/speed)*2%1
-      
+
       bump = (m==bumpZ && i==bumpTheta) ? .1:0
 
 
@@ -276,11 +276,11 @@ function draw(dt){
 
       // first point is a moveTo (L(1))
       X=S(p=v*i)+O,Y=C(p)+Q,Z=q;
-      lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 29);
+
+      //modify the color by Z with LUT, first sprite in sheet
+      lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 28);
       cursorColor = LUT[lutcolor][55];
       L(1);
-
-      //cir(); //w+X/z*w,h+Y/z*w)
 
       // second point is a lineTo the next lateral vertex in the ring
       X=S(p+=v)+O,Y=C(p)+Q,Z=q,L()
@@ -290,6 +290,7 @@ function draw(dt){
 
       // fourth and last point is a lineTo the previous point on the next ring (completing a quad)
       X=S(p-=v)+P,Y=C(p)+R,Z=q,L()
+
     }
 
 
@@ -348,10 +349,19 @@ function draw(dt){
       }
     }
   }
-  renderSource = BUFFER;
-  spr(); //default to copying the whole screen, from the buffer we drew player to
-
-  renderSource = SPRITES;
+  if(!gameInPlay){
+    text([
+      'GAME\nOVER',
+      WIDTH/2,
+      80,
+      8,
+      15,
+      'center',
+      'top',
+      5,
+      4,
+    ]);
+  }
 }//end draw()
 
 // function to move to or draw a line to a 3D-projected coordinate
