@@ -34,7 +34,6 @@ function init() {
 
   t = 0;
   last = 0;
-  hit = false;
 
   // lateral facets in tube
   sides=16
@@ -55,8 +54,9 @@ function init() {
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=0
   shotTimer=0;
-  shotInterval=10; // smaller is faster
+  shotInterval=2; // smaller is faster
   gameInPlay=1
+  bumpVar=0
 
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -71,7 +71,12 @@ function init() {
   bullets = [];
   splosions = [];
   gunsActive = Array(99).fill(1);
-
+  bumps=[];
+  
+  for(let i=0;i<depth;++i){
+    bumps.push({Z:i,theta:Math.random()*sides|0});
+  }
+  
   E = {};
   E.moveTo = moveTo;
   E.lineTo = lineTo;
@@ -87,7 +92,7 @@ function init() {
   .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("splosionColor", 0, 63, 9, 1)
   .addRange("spokeColor", 0, 63, 7, 1)
-  .addRange("Spokes", 1, 9, 3, 1)
+  .addRange("Spokes", 1, 30, 3, 1)
   .addRange("bump Z", 1, depth, 4, 1)
   .addRange("bump Theta", 1, sides, 15, 1)
 
@@ -115,10 +120,6 @@ function loop(dt){
   dt = Math.min(1, (now - last) / 1000);
   t += dt;
 
-
-  //good practice to update logic separately from drawing. not good golf, but easier to read!
-  //indeed :)
-
   //update logic
   step(dt);
 
@@ -132,6 +133,12 @@ function loop(dt){
   stats.end();
   requestAnimationFrame(loop);
 }
+
+
+function spawnBump(){
+  bumps.push({Z:depth,theta:Math.random()*sides|0});
+}
+
 
 function step(dt){
 
@@ -149,13 +156,14 @@ function step(dt){
   // continually spawn enemies
   if(t%20<1 && enemies.length<300)spawnEnemy();
 
+  // continually spawn bumps
+  if(t%20<1)spawnBump();
+
   // f & g are offsets to recenter the mouth of the tunnel
   // they coincide with the formulas below and should not be changed independently
   f=(j=S(d=t/(1000/horz))/2)*8
   g=C(e=t/(1000/vert))*.5
 
-
-  //changed player dynamics... -Scott
 
   //player update
 	if(leftkey)playerTheta+=.05
@@ -252,6 +260,15 @@ function step(dt){
     splosions[i].S-=.075 // particle size diminishes
     if(splosions[i].S<.05)splosions.splice(i,1)
   }
+
+  //handleBumps
+  adjust=0
+  if(bumpVar>t/(1000/speed)*2%1)adjust=1
+  bumpVar=t/(1000/speed)*2%1
+  for(let i=0;i<bumps.length;i++){
+    bumps[i].Z-=adjust
+    if(bumps[i].Z<1)bumps.splice(i,1);
+  }
 }
 
 function draw(dt){
@@ -267,10 +284,13 @@ function draw(dt){
 
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
       q=m-t/(1000/speed)*2%1
-
-      bump = (m==bumpZ && i==bumpTheta) ? .1:0
-
-
+      
+      let bump = 1
+      for(let k=0;k<bumps.length;k++){
+        if(m==bumps[k].Z|0 && i==bumps[k].theta){
+          bump=1+C(t/19+bumps[k].theta)/2
+        }
+      }
 
       // O & P are the horizontal (X) curvature of the tunnel.
       // they are the same except for P has (q+1), which is needed to plot
@@ -279,26 +299,30 @@ function draw(dt){
       P=S(s*2*j*(q+1)+d)*4-f
 
       // Q & R are the vertical (Y) curvature. again they are the same except for (q+1)
-      Q=C(s*3*j*q+e)*.5-g-bump
-      R=C(s*3*j*(q+1)+e)*.5-g-bump
+      Q=C(s*3*j*q+e)*.5-g
+      R=C(s*3*j*(q+1)+e)*.5-g
 
       // first point is a moveTo (L(1))
-      X=S(p=v*i)+O,Y=C(p)+Q,Z=q;
+      X=S(p=v*i)*bump+O,Y=C(p)*bump+Q,Z=q;
 
       //modify the color by Z with LUT, first sprite in sheet
       lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 28);
       cursorColor = LUT[lutcolor][55];
       L(1);
-
-      // second point is a lineTo the next lateral vertex in the ring
-      X=S(p+=v)+O,Y=C(p)+Q,Z=q,L()
-
-      // third point is a length-wise lineTo the next ring
-      X=S(p)+P,Y=C(p)+R,Z=q+=1,L()
-
-      // fourth and last point is a lineTo the previous point on the next ring (completing a quad)
-      X=S(p-=v)+P,Y=C(p)+R,Z=q,L()
-
+      X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q,L()
+      X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1,L()
+      X=S(p-=v)*bump+P,Y=C(p)*bump+R,Z=q,L()
+      if(bump!=1){
+        X=S(p=v*i)*bump+O,Y=C(p)*bump+Q,Z=q-=1;L()
+        X=S(p)+O,Y=C(p)+Q,Z=q,L()
+        X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q,L(1)
+        X=S(p)+O,Y=C(p)+Q,Z=q,L()
+        X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1,L(1)
+        X=S(p)+P,Y=C(p)+R,Z=q,L()
+        X=S(p-=v)*bump+P,Y=C(p)*bump+R,Z=q,L(1)
+        X=S(p)+P,Y=C(p)+R,Z=q,L()
+        X=S(p)+O,Y=C(p)+Q,Z=q-=1,L()
+      }
     }
 
 
@@ -379,8 +403,8 @@ pal = gameoverPal
 L=q=>{
     z=Z>.1?Z:.1;
     E[q?"moveTo":"lineTo"](w+X/z*w,h+Y/z*w)
-
 }
+
 //draw a circle projected to a 3d coordinate, scaled
 cir=q=>{
     z=Z>.1?Z:.1;
