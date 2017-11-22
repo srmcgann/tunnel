@@ -64,7 +64,8 @@ function init() {
     enemies.push({
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
-      size: 15
+      size: 15,
+      health: 30
     })
   }
 
@@ -72,11 +73,11 @@ function init() {
   splosions = [];
   gunsActive = Array(99).fill(1);
   bumps=[];
-  
+
   for(let i=0;i<depth;++i){
-    bumps.push({Z:i,theta:Math.random()*sides|0});
+    bumps.push({Z:i,theta:Math.random()*sides|0,b:Math.random()*.5-1});
   }
-  
+
   E = {};
   E.moveTo = moveTo;
   E.lineTo = lineTo;
@@ -136,7 +137,7 @@ function loop(dt){
 
 
 function spawnBump(){
-  bumps.push({Z:depth,theta:Math.random()*sides|0});
+  bumps.push({Z:depth,theta:Math.random()*sides|0,b:Math.random()*.5-1});
 }
 
 
@@ -242,9 +243,14 @@ function step(dt){
             if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
               X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
               Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
+              enemies[m].health-=1
               spawnSplosion(X,Y,bullets[i].Z)
-              enemies.splice(m,1)
-              bullets.splice(i,1)
+              if(enemies[m].health < 1){
+                spawnSplosion(X,Y,bullets[i].Z)
+                enemies.splice(m,1)
+                bullets.splice(i,1)
+              }
+
             }
           }
         }
@@ -281,14 +287,15 @@ function draw(dt){
   for(m=depth;m--;){
     for(i=sides;i--;){
 
-
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
       q=m-t/(1000/speed)*2%1
-      
+
       let bump = 1
       for(let k=0;k<bumps.length;k++){
         if(m==bumps[k].Z|0 && i==bumps[k].theta){
           bump=1+C(t/19+bumps[k].theta)/2
+          bump=1+C(19+bumps[k].theta)/2
+          //bump=bumps[k].b
         }
       }
 
