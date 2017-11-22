@@ -23,6 +23,14 @@ function init() {
     laserCannon: { x:94, y:0, width: 31, height: 31}
   }
 
+  gameoverPal = [
+    0,1,2,3,4,5,6,7,8,9,
+    2,2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,2,
+    2,2,2,2 ]
 
   t = 0;
   last = 0;
@@ -351,6 +359,7 @@ function draw(dt){
     }
   }
   if(!gameInPlay){
+pal = gameoverPal
     text([
       'GAME\nOVER',
       WIDTH/2,
