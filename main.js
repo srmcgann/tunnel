@@ -77,16 +77,14 @@ function init() {
   .addRange("speed", 0, 40, 29, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
-  .addRange("tunnelColor", 0, 63, 20, 1)
   .addRange("splosionColor", 0, 63, 9, 1)
-  .addRange("playerColor", 0, 63, 14, 1)
   .addRange("spokeColor", 0, 63, 7, 1)
   .addRange("Spokes", 1, 9, 3, 1)
-  .addRange("playerLength", 1, 30, 7, 1)
+  .addRange("bump Z", 1, depth, 5, 1)
+  .addRange("bump Theta", 1, sides, 7, 1)
 
   loop();
 }
-
 
 function spawnSplosion(X,Y,Z){
   for(let i=99;i--;){
@@ -133,12 +131,11 @@ function step(dt){
   speed = panel.getValue('speed');
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
-  tunnelColor = panel.getValue('tunnelColor');
-  playerColor = panel.getValue('playerColor');
   spokeColor = panel.getValue('spokeColor');
   splosionColor = panel.getValue('splosionColor');
-  playerLength = panel.getValue('playerLength');
   spokes = panel.getValue('Spokes');
+  bumpZ = panel.getValue('bump Z');
+  bumpTheta = panel.getValue('bump Theta');
 
 
   // continually spawn enemies
@@ -178,7 +175,7 @@ function step(dt){
           while(p<-Math.PI)p+=Math.PI*2
           if(Math.abs(e.theta - p) < 0.2 ){
             X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+t/(1000/vert))*.5-g
-            console.log(e)
+            //console.log(e)
             X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p)
             spawnSplosion(X,Y,playerZ)
             gunsActive[i]=0
@@ -186,7 +183,7 @@ function step(dt){
         }
       }
     }
-        
+
     //reset position to back of tunnel if behind view
     if(e.z < 1){
       e.z = depth;
@@ -198,7 +195,7 @@ function step(dt){
   if(!gameInPlay){
     spawnSplosion(20-Math.random()*40,20-Math.random()*40,Math.random()*40)
   }
-  
+
   // shoot guns
   if(spacekey && shotTimer<t){
     shotTimer=t+shotInterval
@@ -252,7 +249,6 @@ function step(dt){
 function draw(dt){
 
   clear(0);
-  cursorColor = tunnelColor;
 
   // reduced intensity of vertical waves -Scott
 
@@ -260,9 +256,13 @@ function draw(dt){
   for(m=depth;m--;){
     for(i=sides;i--;){
 
+
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
       q=m-t/(1000/speed)*2%1
-      //console.log(q);
+      
+      bump = (m==bumpZ && i==bumpTheta) ? .1:0
+
+
 
       // O & P are the horizontal (X) curvature of the tunnel.
       // they are the same except for P has (q+1), which is needed to plot
@@ -271,8 +271,8 @@ function draw(dt){
       P=S(s*2*j*(q+1)+d)*4-f
 
       // Q & R are the vertical (Y) curvature. again they are the same except for (q+1)
-      Q=C(s*3*j*q+e)*.5-g
-      R=C(s*3*j*(q+1)+e)*.5-g
+      Q=C(s*3*j*q+e)*.5-g-bump
+      R=C(s*3*j*(q+1)+e)*.5-g-bump
 
       // first point is a moveTo (L(1))
       X=S(p=v*i)+O,Y=C(p)+Q,Z=q;
@@ -330,7 +330,6 @@ function draw(dt){
       }
     }
 
-    cursorColor = tunnelColor;
 
     //player draw routine
     if(m==(playerZ|0)){ //for the draw order! I get it now -Ryan
@@ -347,26 +346,6 @@ function draw(dt){
           rspr3d(sprites.laserCannon, 1.5, p)
         }
       }
-      // //player position
-      // X=S(playerTheta)+S(s*2*j*Z+d)*4-f
-      // Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
-      //
-      // //draw player tunnel spokes
-      // L(1) //moveto
-      // cursorColor = spokeColor;
-      // X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L()
-      // X+=S(playerTheta+Math.PI*2/3),Y+=C(playerTheta+Math.PI*2/3),L()
-      // rspr3d(sprites.laserCannon, 1.5)
-      // X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
-      // X+=S(playerTheta+Math.PI*4/3),Y+=C(playerTheta+Math.PI*4/3),L()
-      // rspr3d(sprites.laserCannon, 1.5)
-      // X=S(playerTheta)+S(s*2*j*Z+d)*4-f
-      // Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
-      // rspr3d(sprites.laserCannon, 1.5)
-
-      //set cursor back to tunnelColor, comment out for potential feature/fun?
-      cursorColor = tunnelColor;
-      renderTarget = SCREEN;
     }
   }
   renderSource = BUFFER;
