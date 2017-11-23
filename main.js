@@ -14,8 +14,7 @@ function init() {
       LUT.push(ram.slice(SPRITES+WIDTH*i, SPRITES+WIDTH*i+64))
     }
     loop();
-    //console.log('sprites loaded -master branch');
-  }
+    }
 
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
@@ -41,6 +40,9 @@ function init() {
   // length-wise segments in tube
   depth=35
 
+  //amount of random bumps in tunnel sides
+  bumpsAmount = 5;
+
   //center of screen
   w = WIDTH/2;
   h = HEIGHT/2;
@@ -52,12 +54,16 @@ function init() {
   //initial player position and key inputs
   OPZ=playerZ=3;
   playerTheta=0;
-  spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=0
+  spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=0
   shotTimer=0;
   shotInterval=2; // smaller is faster
   gameInPlay=1
   bumpVar=0
   squeeze=1
+  score=0
+  spokes=3
+  lastSpokeScore=0;
+  spokePowerup=30000;
 
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -66,7 +72,7 @@ function init() {
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
       size: 15,
-      health: 20
+      health: 20+score/3000
     })
   }
 
@@ -76,8 +82,9 @@ function init() {
   bumps=[];
 
   for(let i=0;i<depth;++i){
-    bumps.push({Z:i,theta:Math.random()*sides|0,b:Math.random()*.5-1});
-    bumps.push({Z:i,theta:Math.random()*sides|0,b:Math.random()*.5-1});
+    for(let i = 0; i < bumpsAmount; i++){
+      bumps.push({Z:depth,theta:Math.random()*sides|0,b:Math.random()*.4-.2});
+    }
   }
 
   E = {};
@@ -91,14 +98,16 @@ function init() {
   .hideAllTitles()
   .setKey("h")
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
+  .addButton("reset", reset)
   .addRange("speed", 0, 40, 29, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("spokeColor", 0, 63, 7, 1)
-  .addRange("Spokes", 1, 30, 3, 1)
+  //.addRange("Spokes", 1, 30, 3, 1)
   .addRange("FOV", 100, 1000, 300, .1)
+  panel.hide()
 
-  loop();
+  //loop();
 }
 
 function spawnSplosion(X,Y,Z,a=99){
@@ -138,7 +147,10 @@ function loop(dt){
 
 
 function spawnBump(){
-  bumps.push({Z:depth,theta:Math.random()*sides|0,b:Math.random()*.5-1});
+  for(let i = 0; i < bumpsAmount; i++){
+    bumps.push({Z:depth,theta:Math.random()*sides|0,b:Math.random()*.4-.2});
+  }
+
 }
 
 
@@ -149,23 +161,31 @@ function step(dt){
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
-  spokes = panel.getValue('Spokes');
+  //spokes = panel.getValue('Spokes');
   FOV = panel.getValue('FOV');
-  
+
   //squeeze the guns together when C is pressed
   if(ckey){
     squeeze = (squeeze - .05).clamp(.01, 1)
   }else{
     squeeze = (squeeze + .05).clamp(.01, 1)
-    
-  }
 
+  }
+  //check for reset
+  if(rkey)reset();
 
   // continually spawn enemies
   if(t%20<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn bumps
   if(t%20<1)spawnBump();
+
+  // score-based spoke powerup
+  if(score-lastSpokeScore > spokePowerup){
+    spokes++;
+    gunsActive[gunsActive.indexOf(0)] = 1;
+    lastSpokeScore = score;
+  }
 
   // f & g are offsets to recenter the mouth of the tunnel
   // they coincide with the formulas below and should not be changed independently
@@ -193,7 +213,7 @@ function step(dt){
       for(let i = 0; i <= spokes; ++i){
         if(gunsActive[i]){
           gameInPlay=1
-          let p=playerTheta+Math.PI*2/spokes*i
+          let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
           if(Math.abs(e.theta - p) < 0.2 ){
@@ -233,7 +253,8 @@ function step(dt){
 
   //handle bullets
   for(let i=0;i<bullets.length;i++){
-    if(bullets[i].Z>depth){
+
+    if(bullets[i].Z>18){ //bullets should die sooner
       // cull bullets when they travel to the end of the tunnel
       bullets.splice(i,1)
     }
@@ -251,11 +272,13 @@ function step(dt){
             X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
             Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
             enemies[m].health-=1
+            score+=50
             spawnSplosion(X,Y,bullets[i].Z,5)
             if(enemies[m].health < 1){
               spawnSplosion(X,Y,bullets[i].Z)
               enemies.splice(m,1)
               bullets.splice(i,1)
+              score+=1000
             }
           }
         }
@@ -302,8 +325,8 @@ function draw(dt){
         if(m==bumps[k].Z|0 && i==bumps[k].theta){
           //bump=1+C(t/19+bumps[k].theta)/2
           //bump=1+C(19+bumps[k].theta)/2
-          bump=.9;
-          //bump=bumps[k].b
+          //bump=-.9;
+          bump=1+bumps[k].b
         }
       }
 
@@ -322,7 +345,8 @@ function draw(dt){
 
       //modify the color by Z with LUT, first sprite in sheet
       lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 28);
-      cursorColor = bump!=1 ? LUT[lutcolor][22] : LUT[lutcolor][55];
+      cursorColor = bump!=1 ? LUT[lutcolor][14] : LUT[lutcolor][55];
+      //cursorColor = LUT[lutcolor][55];
       L(1);
       X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q,L()
       X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1,L()
@@ -361,7 +385,7 @@ function draw(dt){
       if(m==(Z|0)){
         X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
-        fcir(10);
+        fcir(10*(1-squeeze)*3);
       }
     }
 
@@ -382,20 +406,24 @@ function draw(dt){
 
 
     //player draw routine
-    if(m==(playerZ|0)){ 
+    if(m==(playerZ|0)){
       cursorColor = spokeColor;
         //player position
       Z=playerZ
       X=S(playerTheta)+S(s*2*j*Z+d)*4/FOV*300-f
       Y=C(playerTheta)+C(s*3*j*Z+e)*.5/FOV*300-g
+      p=playerTheta+Math.PI*2
+      rspr3d(sprites.laserCannon, 3, p)
         L(1) //moveto
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
           X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,L(1)
           X+=S( p=playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p),L()
+          Z-=(1-squeeze)*.1;
           rspr3d(sprites.laserCannon, 1.5, p)
         }
       }
+
     }
   }
   if(!gameInPlay){
@@ -412,6 +440,18 @@ pal = gameoverPal
       4,
     ]);
   }
+
+  text([
+    'SCORE: ' + score.pad(10),
+    WIDTH/2,
+    10,
+    2,
+    15,
+    'center',
+    'top',
+    1,
+    9,
+  ]);
 }//end draw()
 
 
@@ -463,6 +503,15 @@ pset3d=q=>{
   pset( X3D(), Y3D(), cursorColor )
 }
 
+function reset(){
+  //console.log('reset')
+  pal = palDefault
+  spokes = 3
+  gunsActive = Array(99).fill(1);
+  gameInPlay=true
+  enemies=[];
+}
+
 onkeydown=e=>{
 	switch(e.which){
 		case 32:spacekey=1;break;
@@ -472,6 +521,7 @@ onkeydown=e=>{
 		case 40:downkey=1;break;
 		case 88:xkey=1;break;
 		case 67:ckey=1;break;
+    case 82:rkey=1;break;
 	}
 }
 onkeyup=e=>{
@@ -483,6 +533,7 @@ onkeyup=e=>{
 		case 40:downkey=0;break;
 		case 88:xkey=0;break;
 		case 67:ckey=0;break;
+    case 82:rkey=0;break;
 	}
 }
 
