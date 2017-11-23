@@ -25,12 +25,12 @@ function init() {
 
   gameoverPal = [
     0,1,2,3,4,5,6,7,8,9,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2 ]
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17 ]
 
   t = 0;
   last = 0;
@@ -50,7 +50,7 @@ function init() {
   s=Math.PI*2/depth;
 
   //initial player position and key inputs
-  OPZ=playerZ=2;
+  OPZ=playerZ=3;
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=0
   shotTimer=0;
@@ -94,11 +94,9 @@ function init() {
   .addRange("speed", 0, 40, 29, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
-  .addRange("splosionColor", 0, 63, 9, 1)
   .addRange("spokeColor", 0, 63, 7, 1)
   .addRange("Spokes", 1, 30, 3, 1)
-  .addRange("bump Z", 1, depth, 4, 1)
-  .addRange("bump Theta", 1, sides, 15, 1)
+  .addRange("FOV", 100, 1000, 300, .1)
 
   loop();
 }
@@ -151,10 +149,8 @@ function step(dt){
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
-  splosionColor = panel.getValue('splosionColor');
   spokes = panel.getValue('Spokes');
-  bumpZ = panel.getValue('bump Z');
-  bumpTheta = panel.getValue('bump Theta');
+  FOV = panel.getValue('FOV');
   
   //squeeze the guns together when C is pressed
   if(ckey){
@@ -173,9 +169,8 @@ function step(dt){
 
   // f & g are offsets to recenter the mouth of the tunnel
   // they coincide with the formulas below and should not be changed independently
-  f=(j=S(d=t/(1000/horz))/2)*8
-  g=C(e=t/(1000/vert))*.5
-
+  f=(j=S(d=t/(1000/horz))/2)*8/FOV*300
+  g=C(e=t/(1000/vert))*.5/FOV*300
 
   //player update
 	if(leftkey)playerTheta+=.05
@@ -238,29 +233,29 @@ function step(dt){
 
   //handle bullets
   for(let i=0;i<bullets.length;i++){
-    bullets[i].Z+=.1
     if(bullets[i].Z>depth){
       // cull bullets when they travel to the end of the tunnel
       bullets.splice(i,1)
-    }else{
-      // blow up enemies
-      for(let m=0;m<enemies.length;++m){
-        if(i<bullets.length){
-          if(Math.abs(bullets[i].Z-enemies[m].z)<.2){
-            // put bullet thetas into sane range
-            while(bullets[i].theta>Math.PI)bullets[i].theta-=Math.PI*2
-            while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
-            if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
-              X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
-              Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
-              enemies[m].health-=1
-              spawnSplosion(X,Y,bullets[i].Z,5)
-              if(enemies[m].health < 1){
-                spawnSplosion(X,Y,bullets[i].Z)
-                enemies.splice(m,1)
-                bullets.splice(i,1)
-              }
-
+    }
+  }
+  for(let i=0;i<bullets.length;i++){
+    bullets[i].Z+=.1
+    // blow up enemies
+    for(let m=0;m<enemies.length;++m){
+      if(i<bullets.length){
+        if(Math.abs(bullets[i].Z-enemies[m].z)<.2){
+          // put bullet thetas into sane range
+          while(bullets[i].theta>Math.PI)bullets[i].theta-=Math.PI*2
+          while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
+          if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
+            X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
+            Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
+            enemies[m].health-=1
+            spawnSplosion(X,Y,bullets[i].Z,5)
+            if(enemies[m].health < 1){
+              spawnSplosion(X,Y,bullets[i].Z)
+              enemies.splice(m,1)
+              bullets.splice(i,1)
             }
           }
         }
@@ -270,20 +265,22 @@ function step(dt){
 
   //handle splosions
   for(let i=0;i<splosions.length;++i){
+    if(splosions[i].S<.05)splosions.splice(i,1)
+  }
+  for(let i=0;i<splosions.length;++i){
     splosions[i].X+=splosions[i].VX
     splosions[i].Y+=splosions[i].VY//+=.003 //gravity pulls particles down like a firework
     splosions[i].Z+=splosions[i].VZ
     splosions[i].S-=.075 // particle size diminishes
-    if(splosions[i].S<.05)splosions.splice(i,1)
   }
 
   //handleBumps
   adjust=0
   if(bumpVar>t/(1000/speed)*2%1)adjust=1
   bumpVar=t/(1000/speed)*2%1
+  for(let i=0;i<bumps.length;i++)bumps[i].Z-=adjust
   for(let i=0;i<bumps.length;i++){
-    bumps[i].Z-=adjust
-    if(bumps[i].Z<1)bumps.splice(i,1);
+    if(bumps[i].Z<0)bumps.splice(i,1);
   }
 }
 
@@ -294,7 +291,7 @@ function draw(dt){
   // reduced intensity of vertical waves -Scott
 
   //tunnel draw routine
-  for(m=depth;m--;){
+  for(m=depth;-1+m--;){
     for(i=sides;i--;){
 
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
@@ -313,12 +310,12 @@ function draw(dt){
       // O & P are the horizontal (X) curvature of the tunnel.
       // they are the same except for P has (q+1), which is needed to plot
       // length-wise line segments
-      O=S(s*2*j*q+d)*4-f
-      P=S(s*2*j*(q+1)+d)*4-f
+      O=S(s*2*j*q+d)*4/FOV*300-f
+      P=S(s*2*j*(q+1)+d)*4/FOV*300-f
 
       // Q & R are the vertical (Y) curvature. again they are the same except for (q+1)
-      Q=C(s*3*j*q+e)*.5-g
-      R=C(s*3*j*(q+1)+e)*.5-g
+      Q=C(s*3*j*q+e)*.5/FOV*300-g
+      R=C(s*3*j*(q+1)+e)*.5/FOV*300-g
 
       // first point is a moveTo (L(1))
       X=S(p=v*i)*bump+O,Y=C(p)*bump+Q,Z=q;
@@ -339,7 +336,8 @@ function draw(dt){
         X=S(p)+P,Y=C(p)+R,Z=q,L()
         X=S(p-=v)*bump+P,Y=C(p)*bump+R,Z=q,L(1)
         X=S(p)+P,Y=C(p)+R,Z=q,L()
-        X=S(p)+O,Y=C(p)+Q,Z=q-=1,L()
+        X=S(p+=v)+O,Y=C(p)+Q,Z=q-=1;L(1)
+        X=S(p)+P,Y=C(p)+R,Z=q+=1;L()
       }
     }
 
@@ -361,8 +359,8 @@ function draw(dt){
     for(let i=bullets.length;i--;){
       Z=bullets[i].Z
       if(m==(Z|0)){
-        X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
-        Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
+        X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
+        Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
         fcir(10);
       }
     }
@@ -373,8 +371,8 @@ function draw(dt){
       en = enemies[ec];
       Z=en.z;
       if(m==(Z|0)){ //for proper drawing order ;)
-          X=S(en.theta)*.8+S(s*2*j*Z+d)*4-f
-          Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5-g
+          X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
+          Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
 
           //fcir(en.size);
           renderSource = SPRITES;
@@ -388,12 +386,12 @@ function draw(dt){
       cursorColor = spokeColor;
         //player position
       Z=playerZ
-      X=S(playerTheta)+S(s*2*j*Z+d)*4-f
-      Y=C(playerTheta)+C(s*3*j*Z+e)*.5-g
+      X=S(playerTheta)+S(s*2*j*Z+d)*4/FOV*300-f
+      Y=C(playerTheta)+C(s*3*j*Z+e)*.5/FOV*300-g
         L(1) //moveto
-      for(let i = 0; i <= spokes; ++i){
+      for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
-          X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+e)*.5-g,L(1)
+          X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,L(1)
           X+=S( p=playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p),L()
           rspr3d(sprites.laserCannon, 1.5, p)
         }
@@ -416,33 +414,37 @@ pal = gameoverPal
   }
 }//end draw()
 
+
+X3D=()=>w+X/Z*FOV
+Y3D=()=>h+Y/Z*FOV
+
 // function to move to or draw a line to a 3D-projected coordinate
 // relies on pre-set values for globals X, Y, and Z
 L=q=>{
-    z=Z>.1?Z:.1;
-    E[q?"moveTo":"lineTo"](w+X/z*w,h+Y/z*w)
+  Z=Z>.1?Z:.1
+  E[q?"moveTo":"lineTo"](X3D(),Y3D())
 }
 
 //draw a circle projected to a 3d coordinate, scaled
 cir=q=>{
-    z=Z>.1?Z:.1;
-    //using passed in value for diameter, otherwise defaults to 16
-    circle( w+X/z*w, h+Y/z*w, (q?q:16)/z, cursorColor)
+  Z=Z>.1?Z:.1
+  //using passed in value for diameter, otherwise defaults to 16
+  circle( X3D(), Y3D(), (q?q:16)/Z, cursorColor)
 }
 
 //draw a filled circle to a 3D coordinate, scaled
 fcir=q=>{
-    z=Z>.1?Z:.1;
-    //using passed in value for diameter, otherwise defaults to 16
-    fillCircle( w+X/z*w, h+Y/z*w, (q?q:16)/z, cursorColor)
+  q=q<500?q:500
+  Z=Z>.1?Z:.1
+  //using passed in value for diameter, otherwise defaults to 16
+  fillCircle( X3D(), Y3D(), (q?q:16)/Z, cursorColor)
 }
 
 function spr3d(sprite, scale=1){
-  //z=Z>.1?Z:.1;
-  z=Z
-  dstX = (w+X/z*w)-sprite.width*scale/z/70;
-  dstY = (h+Y/z*w)-sprite.height*scale/z/70;
-  scaleZ = scale/z;
+  Z=Z>.1?Z:.1
+  dstX = X3D()-sprite.width*scale/Z/70;
+  dstY = Y3D()-sprite.height*scale/Z/70;
+  scaleZ = scale/Z*FOV/300;
 
   //sspr(sx = 0, sy = 0, sw = 16, sh = 16, x=0, y=0, dw=16, dh=16){
   //spr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w )
@@ -451,16 +453,14 @@ function spr3d(sprite, scale=1){
 }
 
 function rspr3d(sprite, scale=1, theta){
-  z=Z>.1?Z:.1;
-  dstX = (w+X/z*w);
-  dstY = (h+Y/z*w);
-  scaleZ = scale/z;
-  rspr(sprite.x, sprite.y, sprite.width, sprite.height, dstX, dstY, scaleZ, theta);
+  Z=Z>.1?Z:.1
+  scaleZ = scale/Z*FOV/300;
+  rspr(sprite.x, sprite.y, sprite.width, sprite.height, X3D(), Y3D(), scaleZ, theta);
 }
 
 pset3d=q=>{
-    z=Z>.1?Z:.1;
-    pset( w+X/z*w, h+Y/z*w, cursorColor )
+  Z=Z>.1?Z:.1
+  pset( X3D(), Y3D(), cursorColor )
 }
 
 onkeydown=e=>{
@@ -472,7 +472,6 @@ onkeydown=e=>{
 		case 40:downkey=1;break;
 		case 88:xkey=1;break;
 		case 67:ckey=1;break;
-		
 	}
 }
 onkeyup=e=>{
