@@ -72,7 +72,7 @@ function init() {
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
       size: 15,
-      health: 20+score/3000
+      health: 20//+score/3000
     })
   }
 
@@ -161,11 +161,10 @@ function step(dt){
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
-  //spokes = panel.getValue('Spokes');
   FOV = panel.getValue('FOV');
 
   //squeeze the guns together when C is pressed
-  if(ckey){
+  if(ckey || upkey){
     squeeze = (squeeze - .05).clamp(.01, 1)
   }else{
     squeeze = (squeeze + .05).clamp(.01, 1)
@@ -203,12 +202,12 @@ function step(dt){
 
 
   enemies.sort(function(a,b){return b.z - a.z});
-  enemies.forEach(function(e){
+  enemies.forEach(function(e, eIndex, eArr){
     //move down the tunnel
     e.z-=.08;
 
     //check for collision with player
-    if(e.z - playerZ < 0.2){
+    if(e.z - playerZ < 0.1){
       gameInPlay=0
       for(let i = 0; i <= spokes; ++i){
         if(gunsActive[i]){
@@ -216,11 +215,13 @@ function step(dt){
           let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
-          if(Math.abs(e.theta - p) < 0.2 ){
+          if(Math.abs(e.theta - p) < 0.1 ){
             X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+t/(1000/vert))*.5-g
-            X+=S(p=playerTheta+Math.PI*2/spokes*i),Y+=C(p)
+            X+=S(p=playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p)
             spawnSplosion(X,Y,playerZ)
+            eArr.splice(eIndex, 1);
             gunsActive[i]=0
+            break;
           }
         }
       }
@@ -385,7 +386,7 @@ function draw(dt){
       if(m==(Z|0)){
         X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
-        fcir(10*(1-squeeze)*3);
+        fcir(10);
       }
     }
 
@@ -413,20 +414,21 @@ function draw(dt){
       X=S(playerTheta)+S(s*2*j*Z+d)*4/FOV*300-f
       Y=C(playerTheta)+C(s*3*j*Z+e)*.5/FOV*300-g
       p=playerTheta+Math.PI*2
-      rspr3d(sprites.laserCannon, 3, p)
+
         L(1) //moveto
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
           X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,L(1)
-          X+=S( p=playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p),L()
-          Z-=(1-squeeze)*.1;
+          X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p),L()
           rspr3d(sprites.laserCannon, 1.5, p)
+
         }
       }
 
     }
   }
   if(!gameInPlay){
+    bullets=[];
 pal = gameoverPal
     text([
       'GAME\nOVER',
@@ -486,8 +488,6 @@ function spr3d(sprite, scale=1){
   dstY = Y3D()-sprite.height*scale/Z/70;
   scaleZ = scale/Z*FOV/300;
 
-  //sspr(sx = 0, sy = 0, sw = 16, sh = 16, x=0, y=0, dw=16, dh=16){
-  //spr(sprite.x, sprite.y, sprite.width, sprite.height, w+X/z*w, h+Y/z*w )
   sspr(sprite.x, sprite.y, sprite.width, sprite.height, dstX, dstY, scaleZ, scaleZ);
 
 }
@@ -498,7 +498,7 @@ function rspr3d(sprite, scale=1, theta){
   rspr(sprite.x, sprite.y, sprite.width, sprite.height, X3D(), Y3D(), scaleZ, theta);
 }
 
-pset3d=q=>{
+function pset3d(x, y, z, color){
   Z=Z>.1?Z:.1
   pset( X3D(), Y3D(), cursorColor )
 }
@@ -510,6 +510,7 @@ function reset(){
   gunsActive = Array(99).fill(1);
   gameInPlay=true
   enemies=[];
+  bumps=[];
 }
 
 onkeydown=e=>{
