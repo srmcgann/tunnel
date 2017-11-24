@@ -13,8 +13,11 @@ function init() {
     for(let i = 0; i < 30; ++i){
       LUT.push(ram.slice(SPRITES+WIDTH*i, SPRITES+WIDTH*i+64))
     }
-    loop();
-    }
+    startup();
+  }
+}
+
+function startup(){
 
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
@@ -98,7 +101,7 @@ function init() {
   .addRange("FOV", 100, 1000, 430, .1)
   panel.hide()
 
-  //loop();
+  loop();
 }
 
 
