@@ -19,7 +19,8 @@ function init() {
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
     purpleBall: { x:64, y:0, width: 30, height: 30},
-    laserCannon: { x:94, y:0, width: 31, height: 31}
+    laserCannon: { x:94, y:0, width: 29, height: 30},
+    blockade: {x:123, y:0, width: 30, height: 30}
   }
 
   gameoverPal = [
@@ -41,7 +42,7 @@ function init() {
   depth=35
 
   //amount of random bumps in tunnel sides
-  bumpsAmount = 5;
+  bumpsAmount = 2;
 
   //center of screen
   w = WIDTH/2;
@@ -52,7 +53,7 @@ function init() {
   s=Math.PI*2/depth;
 
   //initial player position and key inputs
-  OPZ=playerZ=3;
+  OPZ=playerZ=4;
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=0
   shotTimer=0;
@@ -61,9 +62,9 @@ function init() {
   bumpVar=0
   squeeze=1
   score=0
-  spokes=3
+  spokes=5
   lastSpokeScore=0;
-  spokePowerup=30000;
+  spokePowerup=20000;
 
   //initial enemy? position -some random entities traveling the opposite direction
   enemies = [];
@@ -72,7 +73,7 @@ function init() {
       z: depth,
       theta: Math.random() * (Math.PI*2) - Math.PI,
       size: 15,
-      health: 20//+score/3000
+      health: 1,//+score/3000
     })
   }
 
@@ -99,12 +100,12 @@ function init() {
   .setKey("h")
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
   .addButton("reset", reset)
-  .addRange("speed", 0, 40, 29, .01)
+  .addRange("speed", 0, 60, 49, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("spokeColor", 0, 63, 7, 1)
   //.addRange("Spokes", 1, 30, 3, 1)
-  .addRange("FOV", 100, 1000, 300, .1)
+  .addRange("FOV", 100, 1000, 430, .1)
   panel.hide()
 
   //loop();
@@ -112,6 +113,8 @@ function init() {
 
 function spawnSplosion(X,Y,Z,a=99){
   for(let i=a;i--;){
+    pencolor=22
+    fcir(60)
     let splosionVelocity=Math.random()*.13
     let p1=Math.PI*2*Math.random()
     let p2=Math.PI*Math.random()
@@ -207,7 +210,7 @@ function step(dt){
     e.z-=.08;
 
     //check for collision with player
-    if(e.z - playerZ < 0.1){
+    if(e.z - playerZ < 0.2){
       gameInPlay=0
       for(let i = 0; i <= spokes; ++i){
         if(gunsActive[i]){
@@ -215,17 +218,27 @@ function step(dt){
           let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
-          if(Math.abs(e.theta - p) < 0.1 ){
+          if(Math.abs(e.theta - p) < 0.2 ){
             X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+t/(1000/vert))*.5-g
-            X+=S(p=playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p)
+            X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p)
             spawnSplosion(X,Y,playerZ)
             eArr.splice(eIndex, 1);
             gunsActive[i]=0
+            //spokes -= 1;
             break;
           }
         }
       }
     }
+    //moved this out to a second loop because I couldn't kill one gun at a time without breaking out of the loop,
+    //and that broke the gameover logic
+    for(let i = 0; i <= spokes; ++i){
+      gameInPlay = 0
+      if(gunsActive[i]){
+        gameInPlay = 1
+      }
+    }
+
 
     //reset position to back of tunnel if behind view
     if(e.z < 1){
@@ -270,12 +283,14 @@ function step(dt){
           while(bullets[i].theta>Math.PI)bullets[i].theta-=Math.PI*2
           while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
           if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
+            Z = bullets[i].Z;
             X=S(bullets[i].theta)+S(s*2*j*Z+d)*4-f
             Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5-g
             enemies[m].health-=1
             score+=50
-            spawnSplosion(X,Y,bullets[i].Z,5)
+            spawnSplosion(X,Y,Z,5)
             if(enemies[m].health < 1){
+
               spawnSplosion(X,Y,bullets[i].Z)
               enemies.splice(m,1)
               bullets.splice(i,1)
@@ -401,12 +416,13 @@ function draw(dt){
 
           //fcir(en.size);
           renderSource = SPRITES;
-          spr3d(sprites.purpleBall, 70);
+          rspr3d(sprites.purpleBall, 3, en.theta+Math.PI*2);
       }
     }
 
 
     //player draw routine
+    if(gameInPlay){
     if(m==(playerZ|0)){
       cursorColor = spokeColor;
         //player position
@@ -421,24 +437,23 @@ function draw(dt){
           X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,L(1)
           X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p),L()
           rspr3d(sprites.laserCannon, 1.5, p)
-
         }
       }
-
     }
   }
+}
   if(!gameInPlay){
     bullets=[];
 pal = gameoverPal
     text([
       'GAME\nOVER',
       WIDTH/2,
-      80,
+      60,
       8,
       15,
       'center',
       'top',
-      5,
+      9,
       4,
     ]);
   }
@@ -506,11 +521,12 @@ function pset3d(x, y, z, color){
 function reset(){
   //console.log('reset')
   pal = palDefault
-  spokes = 3
+  spokes = 5
   gunsActive = Array(99).fill(1);
   gameInPlay=true
   enemies=[];
   bumps=[];
+  score=0;
 }
 
 onkeydown=e=>{
