@@ -136,7 +136,7 @@ step=(dt)=>{
   if(t%40<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn bumps
-  if(t%60<1)spawnBump();
+  if(t%200<1)spawnBump();
 
   // score-based spoke powerup
   if(score-lastSpokeScore > spokePowerup){
