@@ -56,16 +56,16 @@ function startup(){
   s=Math.PI*2/depth;
 
   //initial player position and key inputs
-  OPZ=playerZ=4;
+  OPZ=playerZ=5;
   playerTheta=0;
   spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=0
   shotTimer=0;
-  shotInterval=2; // smaller is faster
+  shotInterval=10; // smaller is faster
   gameInPlay=1
   bumpVar=0
   squeeze=1
   score=0
-  spokes=5
+  spokes=3
   lastSpokeScore=0;
   spokePowerup=20000;
 
@@ -98,7 +98,7 @@ function startup(){
   .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("spokeColor", 0, 63, 7, 1)
   //.addRange("Spokes", 1, 30, 3, 1)
-  .addRange("FOV", 100, 1000, 430, .1)
+  .addRange("FOV", 100, 1000, 380, .1)
   panel.hide()
 
   loop();
@@ -173,7 +173,7 @@ step=(dt)=>{
     //check for collision with player
     if(e.z - playerZ < 0.2){
       //gameInPlay=0
-      for(let i = 0; i <= spokes; ++i){
+      for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
           //gameInPlay=1
           let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
@@ -182,7 +182,7 @@ step=(dt)=>{
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
             if(Math.abs(e.theta - p) < 0.2 ){
-              X=S(s*2*j*Z+d)*4-f,Y=C(s*3*j*Z+t/(1000/vert))*.5-g;
+              X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ);
               eArr.splice(eIndex, 1);
@@ -203,20 +203,20 @@ step=(dt)=>{
 
   //moved this out to a second loop because I couldn't kill one gun at a time without breaking out of the loop,
   //and that broke the gameover logic
-  for(let i = 0; i <= spokes; ++i){
-    gameInPlay = 0
+  gameInPlay = 0
+  for(let i = 0; i < spokes; ++i){
     if(gunsActive[i]){
       gameInPlay = 1
     }
   }
 
   if(!gameInPlay){
-    spawnSplosion(20-Math.random()*40,20-Math.random()*40,Math.random()*40)
+    spawnSplosion(20-Math.random()*40,20-Math.random()*40,1+Math.random()*40)
 
   }
 
   // shoot guns
-  if(spacekey || xkey && shotTimer<t){
+  if((spacekey || xkey) && shotTimer<t){
     shotTimer=t+shotInterval
     for(i=spokes;i--;){
       if(gunsActive[i]){
@@ -232,7 +232,6 @@ step=(dt)=>{
   for(let i=0;i<bullets.length;i++){
 
     if(bullets[i].z>18){ //bullets should die sooner
-      // cull bullets when they travel to the end of the tunnel
       bullets.splice(i,1)
     }
   }
@@ -247,13 +246,13 @@ step=(dt)=>{
           while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
           if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
             Z = enemies[m].z;
-            X=S(enemies[m].theta)+S(s*2*j*Z+d)*4-f
-            Y=C(enemies[m].theta)+C(s*3*j*Z+e)*.5-g
+            X=S(enemies[m].theta)+S(s*2*j*Z+d)*4/FOV*300-f
+            Y=C(enemies[m].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
             enemies[m].health-=1
             score+=50
             spawnSplosion(X,Y,Z,5)
             if(enemies[m].health < 1){
-              spawnSplosion(X,Y,bullets[i].z)
+              spawnSplosion(X,Y,Z)
               enemies.splice(m,1)
               bullets.splice(i,1)
               score+=1000
@@ -352,7 +351,7 @@ draw=(dt)=>{
       if(m==(Z|0)){
         X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
-        fcir(X,Y,Z,10);
+        fcir(X,Y,Z,20);
       }
     }
 
@@ -385,7 +384,7 @@ draw=(dt)=>{
           if(gunsActive[i]){
             X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
             X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p), lineTo3d(X,Y,Z)
-            rspr3d(X, Y, Z, sprites.laserCannon, 1.5, p)
+            rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
           }
         }
       }
@@ -472,7 +471,7 @@ pset3d=(x, y, z, color)=>{
 reset=()=>{
   //console.log('reset')
   pal = palDefault
-  spokes = 5
+  spokes = 3
   gunsActive = Array(99).fill(1);
   gameInPlay=true
   enemies=[];
