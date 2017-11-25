@@ -66,7 +66,7 @@ function startup(){
   bumpVar=0
   squeeze=1
   score=0
-  spokes=3
+  spokes=4
   lastSpokeScore=0;
   spokePowerup=50000;
 
@@ -131,12 +131,13 @@ step=(dt)=>{
 
   //check for reset
   if(rkey)reset();
+  enemies=[];
 
   // continually spawn enemies
   if(t%40<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn bumps
-  if(t%60<1)spawnBump();
+  if(t%200<1)spawnBump();
 
   // score-based spoke powerup
   if(score-lastSpokeScore > spokePowerup){
@@ -208,15 +209,16 @@ step=(dt)=>{
 //handle bump collision
   bumps.forEach(function(e, eIndex, eArr){
     //check for collision with player
-    if(e.z - playerZ < 0.2){
+    if(e.z == playerZ){
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
+          et = (Math.PI*2/sides*e.theta)-Math.PI
           let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
-            if(Math.abs(e.theta - p) < 0.5 ){
+            if(Math.abs(p-et) < .2){
               X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ);
@@ -503,7 +505,7 @@ pset3d=(x, y, z, color)=>{
 reset=()=>{
   //console.log('reset')
   pal = palDefault
-  spokes = 3
+  spokes = 4
   gunsActive = Array(99).fill(1);
   gameInPlay=true
   enemies=[];
