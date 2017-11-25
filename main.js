@@ -136,7 +136,7 @@ step=(dt)=>{
   if(t%40<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn bumps
-  if(t%200<1)spawnBump();
+  if(t%60<1)spawnBump();
 
   // score-based spoke powerup
   if(score-lastSpokeScore > spokePowerup){
@@ -177,7 +177,7 @@ step=(dt)=>{
           while(p<-Math.PI)p+=Math.PI*2
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
-            if(Math.abs(p|0) == e.theta ){
+            if(Math.abs(e.theta - p) < 0.2 ){
               X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ);
@@ -190,38 +190,13 @@ step=(dt)=>{
         }
       }
     }
-    //handle bump collision------------------------------
-    bumps.forEach(function(e, eIndex, eArr){
-
-      //check for collision with player
-      if(e.z - playerZ < 0.2){
-        for(let i = 0; i < spokes; ++i){
-          if(gunsActive[i]){
-            let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
-            while(p>Math.PI)p-=Math.PI*2
-            while(p<-Math.PI)p+=Math.PI*2
-            //check for squeeze to prevent killing all at once from sideways movement
-            if(squeeze > .98 || squeeze < .02){
-              if(Math.abs(e.theta - p) < 0.2 ){
-                X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+t/(1000/vert))*.5/FOV*300-g;
-                X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
-                spawnSplosion(X,Y,playerZ);
-                gunsActive[i]=0;
-                //spokes -= 1;
-                break;
-              }
-            }
-          }
-        }
-      }
-    })
-
     //reset position to back of tunnel if behind view
     if(e.z < 1){
       e.z = depth;
       e.theta = Math.random() * (Math.PI*2) - Math.PI;
     }
-  })
+  })//end enemy check
+
   //check for guns active, gameover if all gone
   gameInPlay = 0
   for(let i = 0; i < spokes; ++i){
@@ -229,6 +204,31 @@ step=(dt)=>{
       gameInPlay = 1
     }
   }
+
+//handle bump collision
+  bumps.forEach(function(e, eIndex, eArr){
+    //check for collision with player
+    if(e.z - playerZ < 0.2){
+      for(let i = 0; i < spokes; ++i){
+        if(gunsActive[i]){
+          let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
+          while(p>Math.PI)p-=Math.PI*2
+          while(p<-Math.PI)p+=Math.PI*2
+          //check for squeeze to prevent killing all at once from sideways movement
+          if(squeeze > .98 || squeeze < .02){
+            if(Math.abs(e.theta - p) < 0.5 ){
+              X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+t/(1000/vert))*.5/FOV*300-g;
+              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
+              spawnSplosion(X,Y,playerZ);
+              gunsActive[i]=0;
+              //spokes -= 1;
+              break;
+            }
+          }
+        }
+      }
+    }
+  })
 
   if(!gameInPlay){
     spawnSplosion(20-Math.random()*40,20-Math.random()*40,1+Math.random()*40)
