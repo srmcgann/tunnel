@@ -45,7 +45,7 @@ function startup(){
   depth=35
 
   //amount of random bumps in tunnel sides
-  bumpsAmount = 2;
+  bumpsAmount = 5;
 
   //center of screen
   w = WIDTH/2;
@@ -77,7 +77,7 @@ function startup(){
 
   for(let i=0;i<depth;++i){
     for(let i = 0; i < bumpsAmount; i++){
-      bumps.push({z:depth,theta:Math.random()*sides|0,b:Math.random()*.4-.2});
+      bumps.push({z:depth, theta:Math.random()*sides|0, b:Math.random()*.2-.4});
     }
   }
 
@@ -151,10 +151,6 @@ step=(dt)=>{
   //player update
 	if(leftkey)playerTheta+=.05
 	if(rightkey)playerTheta-=.05
-	//if(playerZ>depth/2)playerZ=depth/2
-	//if(playerZ<1)playerZ=1
-	//if(upkey)playerZ+=.35
-	//if(downkey)playerZ-=.15
 	playerZ+=(OPZ-playerZ)/50
   //squeeze the guns together when C is pressed
   if(ckey || upkey){
@@ -172,10 +168,8 @@ step=(dt)=>{
 
     //check for collision with player
     if(e.z - playerZ < 0.2){
-      //gameInPlay=0
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
-          //gameInPlay=1
           let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
@@ -200,9 +194,7 @@ step=(dt)=>{
       e.theta = Math.random() * (Math.PI*2) - Math.PI;
     }
   })
-
-  //moved this out to a second loop because I couldn't kill one gun at a time without breaking out of the loop,
-  //and that broke the gameover logic
+  //check for guns active, gameover if all gone
   gameInPlay = 0
   for(let i = 0; i < spokes; ++i){
     if(gunsActive[i]){
@@ -212,7 +204,6 @@ step=(dt)=>{
 
   if(!gameInPlay){
     spawnSplosion(20-Math.random()*40,20-Math.random()*40,1+Math.random()*40)
-
   }
 
   // shoot guns
@@ -278,9 +269,9 @@ step=(dt)=>{
   adjust=0
   if(bumpVar>t/(1000/speed)*2%1)adjust=1
   bumpVar=t/(1000/speed)*2%1
-  for(let i=0;i<bumps.length;i++)bumps[i].Z-=adjust
+  for(let i=0;i<bumps.length;i++)bumps[i].z-=adjust
   for(let i=0;i<bumps.length;i++){
-    if(bumps[i].Z<0)bumps.splice(i,1);
+    if(bumps[i].z<0)bumps.splice(i,1);
   }
 }
 
@@ -292,13 +283,14 @@ draw=(dt)=>{
     for(i=sides;i--;){
       // q is the depth (Z) value and is also used to generate curvature of the tunnel
       q=m-t/(1000/speed)*2%1
-      let bump = 1
+
+      bump = 1
       for(let k=0;k<bumps.length;k++){
-        if(m==bumps[k].z|0 && i==bumps[k].theta){
-          bump=1+bumps[k].b
+        if(m==bumps[k].z|0 && i==bumps[k].theta|0){
+          bump=1-bumps[k].b
+          //bump=1.5
         }
       }
-
       // O & P are the horizontal (X) curvature of the tunnel.
       // they are the same except for P has (q+1), which is needed to plot
       // length-wise line segments
