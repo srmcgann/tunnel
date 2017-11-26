@@ -35,6 +35,11 @@ function startup(){
     17,17,17,17,17,17,17,17,17,17,
     17,17,17,17 ]
 
+  enemyPal = palDefault.slice();
+
+  enemyPal [27]=8; enemyPal[28]=9;
+
+
   t = 0;
   last = 0;
 
@@ -406,9 +411,16 @@ draw=(dt)=>{
 
         //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
-          rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
+          if(en.health > 1){
+            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, enemyPal);
+          }else {
+            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
+          }
+
+
           }
     }
+    pal = palDefault;
     //draw rings
     for(let i = 0; i < rings.length; i++){
       ri = rings[i];
@@ -471,7 +483,7 @@ spawnEnemy=()=>{
     z: depth,
     theta: Math.random() * (Math.PI*2) - Math.PI,
     size: 15,
-    health: 1,//+score/3000
+    health: Math.random()>.5 ? 1 : 5,//+score/3000
   })
 }
 //---------end Spawners---------------------
@@ -508,10 +520,10 @@ spr3d=(x, y, z, sprite, scale=1)=>{
   sspr(sprite.x, sprite.y, sprite.width, sprite.height, dstX, dstY, scaleZ, scaleZ);
 }
 
-rspr3d=(x, y, z, sprite, scale=1, theta)=>{
+rspr3d=(x, y, z, sprite, scale=1, theta, palette=pal)=>{
   z=z>.1?z:.1
   scaleZ = scale/z*FOV/300;
-  rspr(sprite.x, sprite.y, sprite.width, sprite.height, x3d(x,z), y3d(y,z), scaleZ, theta);
+  rspr(sprite.x, sprite.y, sprite.width, sprite.height, x3d(x,z), y3d(y,z), scaleZ, theta, palette);
 }
 
 pset3d=(x, y, z, color=cursorColor)=>{
