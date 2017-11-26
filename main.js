@@ -66,7 +66,7 @@ function startup(){
   bumpVar=0
   squeeze=1
   score=0
-  spokes=4
+  spokes=3
   lastSpokeScore=0;
   spokePowerup=50000;
 
@@ -212,13 +212,14 @@ step=(dt)=>{
     if(e.z == playerZ){
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
-          et = (Math.PI*2/sides*e.theta)-Math.PI
-          let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
-          while(p>Math.PI)p-=Math.PI*2
-          while(p<-Math.PI)p+=Math.PI*2
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
-            if(Math.abs(p-et) < .2){
+            p=(playerTheta+(Math.PI*2/spokes*i)*squeeze)
+            while(p>Math.PI)p-=Math.PI*2
+            while(p<-Math.PI)p+=Math.PI*2
+            pmap = p.map(-Math.PI, Math.PI, 0, 16)|0
+            //console.info('spokeTheta: '+pmap+' bumpTheta: '+ e.theta + ' difference: ' +(e.theta-pmap));
+            if(Math.abs(e.theta-pmap) == 8){
               X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ);
@@ -447,6 +448,7 @@ spawnSplosion=(x,y,z,a=99)=>{
 spawnBump=()=>{
   for(let i = 0; i < bumpsAmount; i++){
     bumps.push({z:depth,theta:Math.random()*sides|0,b:.2+Math.random()*.2});
+    //bumps.push({z:depth, theta:15, b:.2+Math.random()*.2});
   }
 }
 spawnEnemy=()=>{
@@ -505,8 +507,9 @@ pset3d=(x, y, z, color)=>{
 reset=()=>{
   //console.log('reset')
   pal = palDefault
-  spokes = 4
+  spokes = 1
   gunsActive = Array(99).fill(1);
+  playerTheta = 0;
   gameInPlay=true
   enemies=[];
   bumps=[];
