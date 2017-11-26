@@ -134,11 +134,11 @@ step=(dt)=>{
   //enemies=[];
 
   // continually spawn enemies
-  if(t%40<1 && enemies.length<300)spawnEnemy();
+  if(t%30<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn bumps
   if(t%200<1)spawnBump();
-  if(t%600<1)spawnBump(14);
+  if(t%1000<1)spawnBump(14);
 
   // score-based spoke powerup
   if(score-lastSpokeScore > spokePowerup){
@@ -528,7 +528,7 @@ z=z>.1?z:.1
 reset=()=>{
   //console.log('reset')
   pal = palDefault
-  spokes = 1
+  spokes = 3
   gunsActive = Array(99).fill(1);
   playerTheta = 0;
   gameInPlay=true
