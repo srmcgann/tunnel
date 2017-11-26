@@ -347,15 +347,29 @@ draw=(dt)=>{
       if(bump!=1){
         cursorColor = 5;
         X=S(p=v*i)*bump+O,Y=C(p)*bump+Q,Z=q-=1; lineTo3d(X,Y,Z);
+        tx=X,ty=Y,tz=Z
         X=S(p)+O,Y=C(p)+Q,Z=q,                  lineTo3d(X,Y,Z);
+        tx1=X,ty1=Y,tz1=Z
         X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q,     moveTo3d(X,Y,Z);
+        tx2=X,ty2=Y,tz2=Z
         X=S(p)+O,Y=C(p)+Q,Z=q,                  lineTo3d(X,Y,Z);
+        tx3=X,ty3=Y,tz3=Z
         X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1,     moveTo3d(X,Y,Z);
+        tx4=X,ty4=Y,tz4=Z
         X=S(p)+P,Y=C(p)+R,Z=q,                  lineTo3d(X,Y,Z);
+        tx5=X,ty5=Y,tz5=Z
         X=S(p-=v)*bump+P,Y=C(p)*bump+R,Z=q,     moveTo3d(X,Y,Z);
+        tx6=X,ty6=Y,tz6=Z
         X=S(p)+P,Y=C(p)+R,Z=q,                  lineTo3d(X,Y,Z);
+        tx7=X,ty7=Y,tz7=Z
         X=S(p+=v)+O,Y=C(p)+Q,Z=q-=1;            moveTo3d(X,Y,Z);
+        tx8=X,ty8=Y,tz8=Z
         X=S(p)+P,Y=C(p)+R,Z=q+=1;               lineTo3d(X,Y,Z);
+        tx9=X,ty9=Y,tz9=Z
+        cursorColor=4
+        tri3d(tx,ty,tz, tx1,ty1,tz1, tx2,ty2,tz2)
+        //cursorColor=3
+        tri3d(tx3,ty3,tz3, tx2,ty2,tz2, tx1,ty1,tz1)
       }
     }
 
@@ -500,10 +514,16 @@ rspr3d=(x, y, z, sprite, scale=1, theta)=>{
   rspr(sprite.x, sprite.y, sprite.width, sprite.height, x3d(x,z), y3d(y,z), scaleZ, theta);
 }
 
-pset3d=(x, y, z, color)=>{
+pset3d=(x, y, z, color=cursorColor)=>{
   z=z>.1?z:.1
-  pset( x3d(x,z), y3d(y,z), cursorColor )
+  pset( x3d(x,z), y3d(y,z), color )
 }
+
+tri3d=(x, y, z, x1, y1, z1, x2, y2, z2)=>{
+z=z>.1?z:.1
+  fillTriangle( x3d(x,z), y3d(y,z), x3d(x1,z1), y3d(y1,z1), x3d(x2,z2), y3d(y2,z2) )
+}
+
 
 reset=()=>{
   //console.log('reset')
