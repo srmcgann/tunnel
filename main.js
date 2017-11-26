@@ -138,6 +138,7 @@ step=(dt)=>{
 
   // continually spawn bumps
   if(t%200<1)spawnBump();
+  if(t%600<1)spawnBump(14);
 
   // score-based spoke powerup
   if(score-lastSpokeScore > spokePowerup){
@@ -445,8 +446,8 @@ spawnSplosion=(x,y,z,a=99)=>{
     splosions.push({x,y,z,vx,vy,vz,s:2+Math.random()})
   }
 }
-spawnBump=()=>{
-  for(let i = 0; i < bumpsAmount; i++){
+spawnBump=(a=1)=>{
+  for(let i = 0; i < a; i++){
     bumps.push({z:depth,theta:Math.random()*sides|0,b:.2+Math.random()*.2});
     //bumps.push({z:depth, theta:15, b:.2+Math.random()*.2});
   }
