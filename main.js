@@ -131,7 +131,7 @@ step=(dt)=>{
 
   //check for reset
   if(rkey)reset();
-  enemies=[];
+  //enemies=[];
 
   // continually spawn enemies
   if(t%40<1 && enemies.length<300)spawnEnemy();
