@@ -23,7 +23,8 @@ function startup(){
     lightmap: { x:0, y:0, width: 63, height: 32 },
     purpleBall: { x:64, y:0, width: 30, height: 30},
     laserCannon: { x:94, y:0, width: 29, height: 30},
-    blockade: {x:123, y:0, width: 30, height: 30}
+    blockade: {x:123, y:0, width: 30, height: 30},
+    star: {x:0, y:30, width: 65, height: 80}
   }
 
   gameoverPal = [
@@ -80,16 +81,7 @@ function startup(){
   splosions = [];
   gunsActive = Array(99).fill(1);
   bumps=[];
-
-  // for(let i=0;i<depth;++i){
-  //   for(let i = 0; i < bumpsAmount; i++){
-  //     bumps.push({z:depth, theta:Math.random()*sides|0, b:Math.random()*.2-.4});
-  //   }
-  // }
-
-  // E = {};
-  // E.moveTo = moveTo;
-  // E.lineTo = lineTo;
+  powerups=[];
 
   //setup fiddle knobs
   panel= QuickSettings.create(10, 60, 'controls');
@@ -138,7 +130,10 @@ step=(dt)=>{
   //enemies=[];
 
   // continually spawn enemies
-  if(t%30<1 && enemies.length<300)spawnEnemy();
+  if(t%50<1 && enemies.length<300)spawnEnemy();
+
+  // continually spawn powerups
+  if(t%100<1 && powerups.length<3)spawnPowerup();
 
   // continually spawn bumps
   if(t%200<1)spawnBump();
@@ -146,9 +141,7 @@ step=(dt)=>{
 
   // score-based spoke powerup
   if(score-lastSpokeScore > spokePowerup){
-    spokes++;
-    gunsActive[gunsActive.indexOf(0)] = 1;
-    lastSpokeScore = score;
+    spawnSpoke();
   }
 
   // f & g are offsets to recenter the mouth of the tunnel
@@ -190,7 +183,7 @@ step=(dt)=>{
               spawnSplosion(X,Y,playerZ);
               eArr.splice(eIndex, 1);
               gunsActive[i]=0;
-              //spokes -= 1;
+              spokes--;
               break;
             }
           }
@@ -203,6 +196,39 @@ step=(dt)=>{
       e.theta = Math.random() * (Math.PI*2) - Math.PI;
     }
   })//end enemy check
+
+  powerups.sort(function(a,b){return b.z - a.z});
+  powerups.forEach(function(e, eIndex, eArr){
+    //move down the tunnel
+    e.z-=.1;
+    //e.theta+=.01;
+
+    //check for collision with player
+    if(e.z - playerZ < 0.2){
+      for(let i = 0; i < spokes; ++i){
+        if(gunsActive[i]){
+          let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
+          while(p>Math.PI)p-=Math.PI*2
+          while(p<-Math.PI)p+=Math.PI*2
+          //check for squeeze to prevent killing all at once from sideways movement
+          if(squeeze > .98 || squeeze < .02){
+            if(Math.abs(e.theta - p) < 0.2 ){
+              X=S(s*2*j*playerZ+d)*4/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
+              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
+              spawnSpoke();
+              eArr.splice(eIndex, 1);
+              break;
+            }
+          }
+        }
+      }
+    }
+    //reset position to back of tunnel if behind view
+    if(e.z < 1){
+      e.z = depth;
+      e.theta = Math.random() * (Math.PI*2) - Math.PI;
+    }
+  })//end powerup check
 
   //check for guns active, gameover if all gone
   gameInPlay = 0
@@ -223,14 +249,14 @@ step=(dt)=>{
             p=(playerTheta+(Math.PI*2/spokes*i)*squeeze)
             while(p>Math.PI)p-=Math.PI*2
             while(p<-Math.PI)p+=Math.PI*2
-            pmap = p.map(-Math.PI, Math.PI, 0, 16)|0
+            pmap = p.map(-Math.PI, Math.PI, 0, sides)|0
             //console.info('spokeTheta: '+pmap+' bumpTheta: '+ e.theta + ' difference: ' +(e.theta-pmap));
-            if(Math.abs(e.theta-pmap) == 8){
+            if(Math.abs(e.theta-pmap) == sides/2){
               X=S(s*2*j*playerZ+d)*4/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ);
               gunsActive[i]=0;
-              //spokes -= 1;
+              spokes--;
               break;
             }
           }
@@ -425,19 +451,34 @@ draw=(dt)=>{
       en = enemies[i];
       Z=en.z;
       if(m==(Z|0)){ //for proper drawing order ;)
-          X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
-          Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
+        X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
+        Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
 
         //  fcir(X,Y,Z,40);
-          renderSource = SPRITES;
-          if(en.health > 1){
-            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
-          }else {
-            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
-          }
+        renderSource = SPRITES;
+        if(en.health > 1){
+          rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
+        }else {
+          rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
+        }
+      }
+    }
+    pal = palDefault;
 
 
-          }
+    //powerup draw routine
+    cursorColor = 4;
+    for(let i = 0; i < powerups.length; i++){
+      en = powerups[i];
+      Z=en.z;
+      if(m==(Z|0)){ //for proper drawing order ;)
+        X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
+        Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
+
+        //  fcir(X,Y,Z,40);
+        renderSource = SPRITES;
+        rspr3d(X,Y,Z, sprites.star, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
+      }
     }
     pal = palDefault;
 
@@ -496,6 +537,18 @@ spawnEnemy=()=>{
     size: 15,
     health: Math.random()>.5 ? 1 : 2,//+score/3000
   })
+}
+spawnPowerup=()=>{
+  powerups.push({
+    z: depth,
+    theta: Math.random() * (Math.PI*2) - Math.PI,
+    size: 15
+  })
+}
+spawnSpoke=()=>{
+  spokes+=gunsActive.indexOf(0)<spokes&&gunsActive.indexOf(0)!=-1?0:1;
+  gunsActive[gunsActive.indexOf(0)] = 1;
+  lastSpokeScore = score;
 }
 //---------end Spawners---------------------
 
