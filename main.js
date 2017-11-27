@@ -130,7 +130,7 @@ step=(dt)=>{
   //enemies=[];
 
   // continually spawn enemies
-  if(t%50<1 && enemies.length<300)spawnEnemy();
+  if(t%30<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn powerups
   if(t%100<1 && powerups.length<3)spawnPowerup();
