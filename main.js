@@ -77,7 +77,6 @@ function startup(){
 
   enemies = [];
   bullets = [];
-  rings = [];
   splosions = [];
   gunsActive = Array(99).fill(1);
   bumps=[];
@@ -173,7 +172,8 @@ step=(dt)=>{
   enemies.sort(function(a,b){return b.z - a.z});
   enemies.forEach(function(e, eIndex, eArr){
     //move down the tunnel
-    e.z-=.06;
+    e.z-=.1;
+    //e.theta+=.01;
 
     //check for collision with player
     if(e.z - playerZ < 0.2){
@@ -289,7 +289,26 @@ step=(dt)=>{
         }
       }
     }
-  }
+
+    //bullets vs bumps
+    for(let m=0;m<bumps.length;++m){
+      if(i<bullets.length){
+        if(Math.abs(bullets[i].z-bumps[m].z)<.2){
+          // put bullet thetas into sane range
+          while(bullets[i].theta>Math.PI)bullets[i].theta-=Math.PI*2
+          while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
+          bmap = bullets[i].theta.map(-Math.PI, Math.PI, 0, 16)|0
+          if(Math.abs(bumps[m].theta - bmap) == 8){
+            Z = bullets[i].z;
+            X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
+            Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
+            spawnSplosion(X,Y,Z,10)
+              bullets.splice(i,1)
+            }
+          }
+        }
+      }
+    }
 
   //handle splosions
   for(let i=0;i<splosions.length;++i){
@@ -412,7 +431,7 @@ draw=(dt)=>{
         //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
           if(en.health > 1){
-            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, enemyPal);
+            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
           }else {
             rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
           }
@@ -421,15 +440,7 @@ draw=(dt)=>{
           }
     }
     pal = palDefault;
-    //draw rings
-    for(let i = 0; i < rings.length; i++){
-      ri = rings[i];
-      Z = ri.z;
-      if(m==(Z|0)){
-        X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
-        Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
-      }
-    }
+
 
     //player draw routine
       if(gameInPlay){
@@ -483,7 +494,7 @@ spawnEnemy=()=>{
     z: depth,
     theta: Math.random() * (Math.PI*2) - Math.PI,
     size: 15,
-    health: Math.random()>.5 ? 1 : 5,//+score/3000
+    health: Math.random()>.5 ? 1 : 2,//+score/3000
   })
 }
 //---------end Spawners---------------------
