@@ -28,7 +28,7 @@ function startup(){
   }
 
   gameoverPal = [
-    0,1,2,3,4,5,6,7,8,9,
+     0,17,17,17,4,17,17,17,17,17,
     17,17,17,17,17,17,17,17,17,17,
     17,17,17,17,17,17,17,17,17,17,
     17,17,17,17,17,17,17,17,17,17,
@@ -38,7 +38,6 @@ function startup(){
 
   enemyPal = palDefault.slice();
 
-  enemyPal [27]=8; enemyPal[28]=9;
 
 
   t = 0;
@@ -123,7 +122,12 @@ step=(dt)=>{
   vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
   FOV = panel.getValue('FOV');
-
+  
+  //rotate palette index for flashing powerups
+  if(t%4<1)enemyPal[9] = 8 + t%7|0
+  //rotate palette index for enemy outline, for higher health enemies
+  if(t%2<1)enemyPal[3] = 3 + t%5|0
+ 
 
   //check for reset
   if(rkey)reset();
@@ -266,7 +270,7 @@ step=(dt)=>{
   })
 
   if(!gameInPlay){
-    spawnSplosion(20-Math.random()*40,20-Math.random()*40,1+Math.random()*40)
+   if(t%10<1) spawnSplosion(4-Math.random()*2,4-Math.random()*2,1+Math.random()*10)
   }
 
   // shoot guns
@@ -418,7 +422,6 @@ draw=(dt)=>{
         tx9=X,ty9=Y,tz9=Z
         cursorColor=4
         tri3d(tx,ty,tz, tx1,ty1,tz1, tx2,ty2,tz2)
-        //cursorColor=3
         tri3d(tx3,ty3,tz3, tx2,ty2,tz2, tx1,ty1,tz1)
       }
     }
@@ -427,7 +430,7 @@ draw=(dt)=>{
     for(let i=splosions.length;i--;){
       Z=splosions[i].z
       if(m==(Z|0)){
-        cursorColor = Math.round(splosions[i].s.map(0,1.6,0,9).clamp(0, 9))
+        cursorColor = Math.round(splosions[i].s.map(0,1.6,16,21).clamp(16, 21 ))
         X=splosions[i].x
         Y=splosions[i].y
         fcir(X,Y,Z,splosions[i].s*5);
@@ -435,13 +438,35 @@ draw=(dt)=>{
     }
 
     //draw bullets
-    cursorColor = 10;
+   // cursorColor = 22;
     for(let i=bullets.length;i--;){
       Z=bullets[i].z
       if(m==(Z|0)){
-        X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
-        Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
-        fcir(X,Y,Z,20);
+        
+        
+        let r = 20
+        let z = Z-.6
+        z+=.1
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
+        fcir(X,Y,z,r,18);
+         z+=.1
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
+        fcir(X,Y,z,r,19);
+         z+=.1
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
+        fcir(X,Y,z,r,20);
+         z+=.1
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
+        fcir(X,Y,z,r,21);
+         z+=.1
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
+        fcir(X,Y,z,r, 22);
+        
       }
     }
 
@@ -467,7 +492,6 @@ draw=(dt)=>{
 
 
     //powerup draw routine
-    cursorColor = 4;
     for(let i = 0; i < powerups.length; i++){
       en = powerups[i];
       Z=en.z;
@@ -571,9 +595,9 @@ cir=(x,y,z,r)=>{
 }
 
 //draw a filled circle to a 3D coordinate, scaled
-fcir=(x,y,z,r)=>{
+fcir=(x,y,z,r, color=cursorColor)=>{
   z=z>.1?z:.1
-  fillCircle( x3d(x,z), y3d(y,z), r/z, cursorColor)
+  fillCircle( x3d(x,z), y3d(y,z), r/z, color)
 }
 
 spr3d=(x, y, z, sprite, scale=1)=>{
