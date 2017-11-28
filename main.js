@@ -74,6 +74,7 @@ function startup(){
   spokes=3
   lastSpokeScore=0;
   spokePowerup=50000;
+  spokeGet = false;
 
   enemies = [];
   bullets = [];
@@ -122,12 +123,12 @@ step=(dt)=>{
   vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
   FOV = panel.getValue('FOV');
-  
+
   //rotate palette index for flashing powerups
   if(t%4<1)enemyPal[9] = 8 + t%7|0
   //rotate palette index for enemy outline, for higher health enemies
   if(t%2<1)enemyPal[3] = 3 + t%5|0
- 
+
 
   //check for reset
   if(rkey)reset();
@@ -137,7 +138,7 @@ step=(dt)=>{
   if(t%30<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn powerups
-  if(t%100<1 && powerups.length<3)spawnPowerup();
+  if(t%200<1 && powerups.length<3)spawnPowerup();
 
   // continually spawn bumps
   if(t%200<1)spawnBump();
@@ -162,8 +163,9 @@ step=(dt)=>{
     squeeze = (squeeze - .05).clamp(.01, 1)
   }else{
     squeeze = (squeeze + .05).clamp(.01, 1)
-
   }
+
+  if(spokeGet > 0)spokeGet = (spokeGet - .05).clamp(0,1);
 
 
   enemies.sort(function(a,b){return b.z - a.z});
@@ -442,8 +444,8 @@ draw=(dt)=>{
     for(let i=bullets.length;i--;){
       Z=bullets[i].z
       if(m==(Z|0)){
-        
-        
+
+
         let r = 20
         let z = Z-.6
         z+=.1
@@ -466,7 +468,7 @@ draw=(dt)=>{
         X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
         fcir(X,Y,z,r, 22);
-        
+
       }
     }
 
@@ -521,7 +523,7 @@ draw=(dt)=>{
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
             X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
-            X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze ),Y+=C(p), lineTo3d(X,Y,Z)
+            X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*i*squeeze ),Y+=C(p), lineTo3d(X,Y,Z)
             rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
           }
         }
@@ -573,6 +575,7 @@ spawnSpoke=()=>{
   spokes+=gunsActive.indexOf(0)<spokes&&gunsActive.indexOf(0)!=-1?0:1;
   gunsActive[gunsActive.indexOf(0)] = 1;
   lastSpokeScore = score;
+  spokeGet = 1;
 }
 //---------end Spawners---------------------
 
