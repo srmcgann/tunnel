@@ -28,7 +28,7 @@ function startup(){
   }
 
   gameoverPal = [
-     0,17,17,17,4,17,17,17,17,17,
+     0,1,2,3,4,5,6,7,8,9,
     17,17,17,17,17,17,17,17,17,17,
     17,17,17,17,17,17,17,17,17,17,
     17,17,17,17,17,17,17,17,17,17,
@@ -158,7 +158,7 @@ step=(dt)=>{
 	if(leftkey)playerTheta+=.05
 	if(rightkey)playerTheta-=.05
 	playerZ+=(OPZ-playerZ)/50
-  //squeeze the guns together when C is pressed
+  //squeeze the guns together when C  or up is pressed
   if(ckey || upkey){
     squeeze = (squeeze - .05).clamp(.01, 1)
   }else{
@@ -355,7 +355,7 @@ step=(dt)=>{
 
   //handleBumps
   adjust=0
-  if(bumpVar>t/(1000/speed)*2%1)adjust=1
+  if(bumpVar>t/(1000/speed)*2%1)adjust=1 //
   bumpVar=t/(1000/speed)*2%1
   for(let i=0;i<bumps.length;i++)bumps[i].z-=adjust
   for(let i=0;i<bumps.length;i++){
@@ -432,7 +432,11 @@ draw=(dt)=>{
     for(let i=splosions.length;i--;){
       Z=splosions[i].z
       if(m==(Z|0)){
-        cursorColor = Math.round(splosions[i].s.map(0,1.6,16,21).clamp(16, 21 ))
+        
+        //black through red and yellow are colors 0-9. 
+        //we map the size of the particle S to a number that corresponds w the color
+        cursorColor = Math.round(splosions[i].s.map(0,1.6,0,9).clamp(0, 9 ))
+       // cursorColor = Math.round(splosions[i].s.map(0,1.6,16,21).clamp(16, 21 ))
         X=splosions[i].x
         Y=splosions[i].y
         fcir(X,Y,Z,splosions[i].s*5);
