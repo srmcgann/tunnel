@@ -138,16 +138,16 @@ step=(dt)=>{
   if(t%30<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn powerups
-  if(t%200<1 && powerups.length<3)spawnPowerup();
+  if(t%4000<1 && powerups.length<3)spawnPowerup();
 
   // continually spawn bumps
   if(t%200<1)spawnBump();
-  if(t%1000<1)spawnBump(14);
+  //if(t%3500<1)spawnBump(16);
 
   // score-based spoke powerup
-  if(score-lastSpokeScore > spokePowerup){
-    spawnSpoke();
-  }
+  // if(score-lastSpokeScore > spokePowerup){
+  //   spawnSpoke();
+  // }
 
   // f & g are offsets to recenter the mouth of the tunnel
   // they coincide with the formulas below and should not be changed independently
@@ -272,7 +272,10 @@ step=(dt)=>{
   })
 
   if(!gameInPlay){
-   if(t%10<1) spawnSplosion(4-Math.random()*2,4-Math.random()*2,1+Math.random()*10)
+  //at z = 1, the viewport goes from around -2.5,-2, to 2.5, 2. so these numbers were still producing a ton of unneccessary draw calls outside the frustrum, and still *some* framerate drops, despite the fix.
+  //spawnSplosion(20-Math.random()*40,20-Math.random()*40,1+Math.random()*40)
+  
+   spawnSplosion(3-Math.random()*6,3-Math.random()*6,1+Math.random()*40)
   }
 
   // shoot guns
@@ -366,6 +369,9 @@ step=(dt)=>{
 draw=(dt)=>{
 
   clear(0);
+  
+  //fcir(-1,1,5,50,22);
+  //fillCircle(50,50,10,22)
   //tunnel draw routine
   for(m=depth;-1+m--;){
     for(i=sides;i--;){
@@ -603,6 +609,7 @@ cir=(x,y,z,r)=>{
 
 //draw a filled circle to a 3D coordinate, scaled
 fcir=(x,y,z,r, color=cursorColor)=>{
+  r=r<500?r:500
   z=z>.1?z:.1
   fillCircle( x3d(x,z), y3d(y,z), r/z, color)
 }
