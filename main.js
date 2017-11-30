@@ -5,19 +5,7 @@ function init() {
 
   spritesheet = new Image();
   spritesheet.src = "assets/sprites.png";
-
-  LUT = [];
-
-  spritesheet.onload = function(){
-    imageToRam(spritesheet, SPRITES);
-    for(let i = 0; i < 30; ++i){
-      LUT.push(ram.slice(SPRITES+WIDTH*i, SPRITES+WIDTH*i+64))
-    }
-    startup();
-  }
-}
-
-function startup(){
+  level=1;
 
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
@@ -37,8 +25,7 @@ function startup(){
     17,17,17,17 ]
 
   enemyPal = palDefault.slice();
-
-
+  
 
   t = 0;
   last = 0;
@@ -50,6 +37,7 @@ function startup(){
   depth=35
 
 
+  LUT = [];
 
   //center of screen
   w = WIDTH/2;
@@ -62,16 +50,13 @@ function startup(){
   //initial player position and key inputs
   OPZ=playerZ=5;
   playerTheta=0;
-  spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=0
+  ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=0
   shotTimer=0;
-  shotInterval=10; // smaller is faster
-  gameInPlay=1
   //amount of random bumps in tunnel sides
   bumpsAmount = 1;
   bumpVar=0
   squeeze=1
   score=0
-  spokes=3
   lastSpokeScore=0;
   spokePowerup=50000;
   spokeGet = false;
@@ -79,7 +64,6 @@ function startup(){
   enemies = [];
   bullets = [];
   splosions = [];
-  gunsActive = Array(99).fill(1);
   bumps=[];
   powerups=[];
 
@@ -91,7 +75,6 @@ function startup(){
   .setKey("h")
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
   .addButton("reset", reset)
-  .addRange("speed", 0, 60, 49, .01)
   .addRange("horz wave", 0, 40, 2.5, .01)
   .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("spokeColor", 0, 63, 7, 1)
@@ -99,7 +82,106 @@ function startup(){
   .addRange("FOV", 100, 1000, 380, .1)
   panel.hide()
 
-  loop();
+  sprites = {
+    lightmap: { x:0, y:0, width: 63, height: 32 },
+    purpleBall: { x:64, y:0, width: 30, height: 30},
+    laserCannon: { x:94, y:0, width: 29, height: 30},
+    blockade: {x:123, y:0, width: 30, height: 30},
+    star: {x:0, y:30, width: 65, height: 80}
+  }
+
+  gameoverPal = [
+     0,1,2,3,4,5,6,7,8,9,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17,17,17,17,17,17,17,
+    17,17,17,17 ]
+
+  enemyPal = palDefault.slice();
+  
+
+  t = 0;
+  last = 0;
+
+  // lateral facets in tube
+  sides=16
+
+  // length-wise segments in tube
+  depth=35
+  spritesheet.onload = function(){
+    imageToRam(spritesheet, SPRITES);
+    for(let i = 0; i < 30; ++i){
+      LUT.push(ram.slice(SPRITES+WIDTH*i, SPRITES+WIDTH*i+64))
+    }
+    soundtrack=new Audio("cantelope.mp3");
+    soundtrack.loop=1;
+    soundtrack.volume=.6;
+    soundtrack.play();
+    startup();
+    loop();
+  }
+}
+
+function startup(){
+
+  gunsActive = Array(99).fill(1);
+  enemiesKilledThisLevel=0
+  levelUpDisplayTimer=t+100;
+  gameInPlay=1
+  switch(level){
+    case 1:
+      speed=30;
+      powerupSpawnFreq=700;
+      targetKills=35
+      bumpSpawnFreq=200
+      ringSpawnFreq=1500
+      enemySpawnFreq=30
+      shotInterval=10
+      spokes=3
+      break;
+    case 2:
+      speed=35;
+      powerupSpawnFreq=600;
+      targetKills=40
+      bumpSpawnFreq=170
+      ringSpawnFreq=1200
+      enemySpawnFreq=26
+      shotInterval=9
+      spokes=4
+      break;
+    case 3:
+      speed=40;
+      powerupSpawnFreq=500;
+      targetKills=50
+      bumpSpawnFreq=140
+      ringSpawnFreq=1000
+      enemySpawnFreq=23
+      shotInterval=8
+      spokes=5
+      break;
+    case 4:
+      speed=45;
+      powerupSpawnFreq=300;
+      targetKills=60
+      bumpSpawnFreq=120
+      ringSpawnFreq=600
+      enemySpawnFreq=18
+      shotInterval=7
+      spokes=6
+      break;
+    case 5:
+      speed=45;
+      powerupSpawnFreq=50;
+      targetKills=100
+      bumpSpawnFreq=100
+      ringSpawnFreq=100
+      enemySpawnFreq=1000
+      shotInterval=6
+      spokes=8
+      break;
+  }
 }
 
 
@@ -118,7 +200,6 @@ loop=(dt)=>{
 step=(dt)=>{
 
   //hook up control panel vars
-  speed = panel.getValue('speed');
   horz = panel.getValue('horz wave');
   vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
@@ -135,14 +216,14 @@ step=(dt)=>{
   //enemies=[];
 
   // continually spawn enemies
-  if(t%30<1 && enemies.length<300)spawnEnemy();
+  if(t%enemySpawnFreq<1 && enemies.length<300)spawnEnemy();
 
   // continually spawn powerups
-  if(t%4000<1 && powerups.length<3)spawnPowerup();
+  if(t%powerupSpawnFreq<1 && powerups.length<3)spawnPowerup();
 
   // continually spawn bumps
-  if(t%200<1)spawnBump();
-  //if(t%3500<1)spawnBump(16);
+  if(t%bumpSpawnFreq<1)spawnBump();
+  if(t%ringSpawnFreq<1)spawnBump(16);
 
   // score-based spoke powerup
   // if(score-lastSpokeScore > spokePowerup){
@@ -151,7 +232,7 @@ step=(dt)=>{
 
   // f & g are offsets to recenter the mouth of the tunnel
   // they coincide with the formulas below and should not be changed independently
-  f=(j=S(d=t/(1000/horz))/2)*8/FOV*300
+  f=(j=S(d=t/(1000/horz))/2)*6/FOV*300
   g=C(e=t/(1000/vert))*.5/FOV*300
 
   //player update
@@ -171,7 +252,7 @@ step=(dt)=>{
   enemies.sort(function(a,b){return b.z - a.z});
   enemies.forEach(function(e, eIndex, eArr){
     //move down the tunnel
-    e.z-=.1;
+    e.z-=speed/500;
     //e.theta+=.01;
 
     //check for collision with player
@@ -184,9 +265,9 @@ step=(dt)=>{
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
             if(Math.abs(e.theta - p) < 0.2 ){
-              X=S(s*2*j*playerZ+d)*4/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
+              X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
-              spawnSplosion(X,Y,playerZ);
+              spawnSplosion(X,Y,playerZ,150);
               eArr.splice(eIndex, 1);
               gunsActive[i]=0;
               spokes--;
@@ -206,7 +287,7 @@ step=(dt)=>{
   powerups.sort(function(a,b){return b.z - a.z});
   powerups.forEach(function(e, eIndex, eArr){
     //move down the tunnel
-    e.z-=.1;
+    e.z-=speed/500;
     //e.theta+=.01;
 
     //check for collision with player
@@ -219,7 +300,7 @@ step=(dt)=>{
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
             if(Math.abs(e.theta - p) < 0.2 ){
-              X=S(s*2*j*playerZ+d)*4/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
+              X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
               spawnSpoke();
               eArr.splice(eIndex, 1);
@@ -244,7 +325,7 @@ step=(dt)=>{
     }
   }
 
-//handle bump collision
+  //handle bump collision
   bumps.forEach(function(e, eIndex, eArr){
     //check for collision with player
     if(e.z == playerZ){
@@ -258,9 +339,9 @@ step=(dt)=>{
             pmap = p.map(-Math.PI, Math.PI, 0, sides)|0
             //console.info('spokeTheta: '+pmap+' bumpTheta: '+ e.theta + ' difference: ' +(e.theta-pmap));
             if(Math.abs(e.theta-pmap) == sides/2){
-              X=S(s*2*j*playerZ+d)*4/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
+              X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
-              spawnSplosion(X,Y,playerZ);
+              spawnSplosion(X,Y,playerZ,150);
               gunsActive[i]=0;
               spokes--;
               break;
@@ -271,15 +352,23 @@ step=(dt)=>{
     }
   })
 
-  if(!gameInPlay){
-  //at z = 1, the viewport goes from around -2.5,-2, to 2.5, 2. so these numbers were still producing a ton of unneccessary draw calls outside the frustrum, and still *some* framerate drops, despite the fix.
-  //spawnSplosion(20-Math.random()*40,20-Math.random()*40,1+Math.random()*40)
-  
-   spawnSplosion(3-Math.random()*6,3-Math.random()*6,1+Math.random()*40)
+  if(gameInPlay){
+    if (enemiesKilledThisLevel>=targetKills) levelUp()
+  }else{
+    spawnSplosion(5-Math.random()*10,5-Math.random()*10,1+Math.random()*40,98)
+    if(spacekey){
+      enemies = [];
+      powerups=[];
+      level=1 // comment this out to remain on current level after death
+      startup()
+    }
   }
 
   // shoot guns
-  if((spacekey || xkey) && shotTimer<t){
+  if((xkey || ctrlkey) && shotTimer<t && gameInPlay){
+    sound=new Audio("pew.ogg");
+    sound.volume=.1;
+    sound.play();
     shotTimer=t+shotInterval
     for(i=spokes;i--;){
       if(gunsActive[i]){
@@ -309,13 +398,14 @@ step=(dt)=>{
           while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
           if(Math.abs(bullets[i].theta-enemies[m].theta)<.2){
             Z = enemies[m].z;
-            X=S(enemies[m].theta)+S(s*2*j*Z+d)*4/FOV*300-f
+            X=S(enemies[m].theta)+S(s*2*j*Z+d)*3/FOV*300-f
             Y=C(enemies[m].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
             enemies[m].health-=1
             score+=50
-            spawnSplosion(X,Y,Z,5)
+            spawnSplosion(X,Y,Z,10)
             if(enemies[m].health < 1){
               spawnSplosion(X,Y,Z)
+              enemiesKilledThisLevel++;
               enemies.splice(m,1)
               bullets.splice(i,1)
               score+=1000
@@ -335,7 +425,7 @@ step=(dt)=>{
           bmap = bullets[i].theta.map(-Math.PI, Math.PI, 0, 16)|0
           if(Math.abs(bumps[m].theta - bmap) == 8){
             Z = bullets[i].z;
-            X=S(bullets[i].theta)+S(s*2*j*Z+d)*4/FOV*300-f
+            X=S(bullets[i].theta)+S(s*2*j*Z+d)*3/FOV*300-f
             Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
             spawnSplosion(X,Y,Z,10)
               bullets.splice(i,1)
@@ -366,6 +456,14 @@ step=(dt)=>{
   }
 }
 
+
+levelUp=()=>{
+  level++;
+  levelUpDisplayTimer=t+100;
+  startup()
+}
+
+
 draw=(dt)=>{
 
   clear(0);
@@ -388,8 +486,8 @@ draw=(dt)=>{
       // O & P are the horizontal (X) curvature of the tunnel.
       // they are the same except for P has (q+1), which is needed to plot
       // length-wise line segments
-      O=S(s*2*j*q+d)*4/FOV*300-f
-      P=S(s*2*j*(q+1)+d)*4/FOV*300-f
+      O=S(s*2*j*q+d)*3/FOV*300-f
+      P=S(s*2*j*(q+1)+d)*3/FOV*300-f
 
       // Q & R are the vertical (Y) curvature. again they are the same except for (q+1)
       Q=C(s*3*j*q+e)*.5/FOV*300-g
@@ -459,23 +557,23 @@ draw=(dt)=>{
         let r = 20
         let z = Z-.6
         z+=.1
-        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*3/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
         fcir(X,Y,z,r,18);
          z+=.1
-        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*3/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
         fcir(X,Y,z,r,19);
          z+=.1
-        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*3/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
         fcir(X,Y,z,r,20);
          z+=.1
-        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*3/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
         fcir(X,Y,z,r,21);
          z+=.1
-        X=S(bullets[i].theta)+S(s*2*j*z+d)*4/FOV*300-f
+        X=S(bullets[i].theta)+S(s*2*j*z+d)*3/FOV*300-f
         Y=C(bullets[i].theta)+C(s*3*j*z+e)*.5/FOV*300-g
         fcir(X,Y,z,r, 22);
 
@@ -488,7 +586,7 @@ draw=(dt)=>{
       en = enemies[i];
       Z=en.z;
       if(m==(Z|0)){ //for proper drawing order ;)
-        X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
+        X=S(en.theta)*.8+S(s*2*j*Z+d)*3/FOV*300-f
         Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
 
         //  fcir(X,Y,Z,40);
@@ -508,7 +606,7 @@ draw=(dt)=>{
       en = powerups[i];
       Z=en.z;
       if(m==(Z|0)){ //for proper drawing order ;)
-        X=S(en.theta)*.8+S(s*2*j*Z+d)*4/FOV*300-f
+        X=S(en.theta)*.8+S(s*2*j*Z+d)*3/FOV*300-f
         Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
 
         //  fcir(X,Y,Z,40);
@@ -522,17 +620,17 @@ draw=(dt)=>{
     //player draw routine
       if(gameInPlay){
       if(m==(playerZ|0)){
-        cursorColor = spokeColor;
           //player position
         Z=playerZ
-        X=S(playerTheta)+S(s*2*j*Z+d)*4/FOV*300-f
+        X=S(playerTheta)+S(s*2*j*Z+d)*3/FOV*300-f
         Y=C(playerTheta)+C(s*3*j*Z+e)*.5/FOV*300-g
         p=playerTheta+Math.PI*2
 
         moveTo3d(X,Y,Z)
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
-            X=S(s*2*j*Z+d)*4/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
+            cursorColor = i?spokeColor:12;
+            X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
             X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*i*squeeze ),Y+=C(p), lineTo3d(X,Y,Z)
             rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
           }
@@ -544,12 +642,32 @@ draw=(dt)=>{
       bullets=[];
       pal = gameoverPal
       text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 4, ]);
-    }
-    text([ 'SCORE: ' + score.pad(10), WIDTH/2, 10, 2, 15, 'center', 'top', 1, 9, ]);
+      text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, t/9%10, ]);
+  }
+  text([ 'SCORE: ' + score.pad(10), WIDTH/2+50, 10, 2, 15, 'center', 'top', 1, 9, ]);
+  text([ 'LEVEL: ' + level, WIDTH/2-100, 10, 2, 15, 'center', 'top', 1, 9, ]);
+  
+  if(t<=levelUpDisplayTimer){
+    text([ 'LEVEL: ' + level, WIDTH/2, HEIGHT/2-40, 8, 15, 'center', 'top', 6, 12, ]);
+  }
 }//end draw()
 
 //---------Spawners---------------------
 spawnSplosion=(x,y,z,a=99)=>{
+  
+  if(a==99){ // enemy died
+    sound=new Audio("splode.ogg");
+    sound.volume=.5/(1+z/8);
+    sound.play();
+  }
+  if(a==150){ // player lost gun
+    sound=new Audio("splode.ogg");
+    sound.volume=.2;
+    sound.play();
+    sound=new Audio(`metal${1+Math.random()*5|0}.ogg`);
+    sound.volume=.175;
+    sound.play();
+  }
   for(let i=a;i--;){
     let splosionVelocity=Math.random()*.13
     let p1=Math.PI*2*Math.random()
@@ -582,6 +700,9 @@ spawnPowerup=()=>{
   })
 }
 spawnSpoke=()=>{
+  sound=new Audio("powerup.ogg");
+  sound.volume=.75;
+  sound.play()
   spokes+=gunsActive.indexOf(0)<spokes&&gunsActive.indexOf(0)!=-1?0:1;
   gunsActive[gunsActive.indexOf(0)] = 1;
   lastSpokeScore = score;
@@ -661,6 +782,7 @@ onkeydown=e=>{
 		case 88:xkey=1;break;
 		case 67:ckey=1;break;
     case 82:rkey=1;break;
+    case 17:ctrlkey=1;break;
 	}
 }
 
@@ -674,6 +796,7 @@ onkeyup=e=>{
 		case 88:xkey=0;break;
 		case 67:ckey=0;break;
     case 82:rkey=0;break;
+    case 17:ctrlkey=0;break;
 	}
 }
 
