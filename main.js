@@ -25,7 +25,7 @@ function init() {
     17,17,17,17 ]
 
   enemyPal = palDefault.slice();
-  
+
 
   t = 0;
   last = 0;
@@ -100,7 +100,7 @@ function init() {
     17,17,17,17 ]
 
   enemyPal = palDefault.slice();
-  
+
 
   t = 0;
   last = 0;
@@ -467,7 +467,7 @@ levelUp=()=>{
 draw=(dt)=>{
 
   clear(0);
-  
+
   //fcir(-1,1,5,50,22);
   //fillCircle(50,50,10,22)
   //tunnel draw routine
@@ -536,8 +536,8 @@ draw=(dt)=>{
     for(let i=splosions.length;i--;){
       Z=splosions[i].z
       if(m==(Z|0)){
-        
-        //black through red and yellow are colors 0-9. 
+
+        //black through red and yellow are colors 0-9.
         //we map the size of the particle S to a number that corresponds w the color
         cursorColor = Math.round(splosions[i].s.map(0,1.6,0,9).clamp(0, 9 ))
        // cursorColor = Math.round(splosions[i].s.map(0,1.6,16,21).clamp(16, 21 ))
@@ -641,12 +641,17 @@ draw=(dt)=>{
   if(!gameInPlay){
       bullets=[];
       pal = gameoverPal
-      text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 4, ]);
-      text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, t/9%10, ]);
+      renderTarget = BUFFER;
+      text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 1, ]);
+      text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, 1+t/9%10, ]);
+      outline(BUFFER, SCREEN, 6,9,6,3);
+      renderTarget = SCREEN;
+      renderSource = BUFFER;
+      spr();
   }
   text([ 'SCORE: ' + score.pad(10), WIDTH/2+50, 10, 2, 15, 'center', 'top', 1, 9, ]);
   text([ 'LEVEL: ' + level, WIDTH/2-100, 10, 2, 15, 'center', 'top', 1, 9, ]);
-  
+
   if(t<=levelUpDisplayTimer){
     text([ 'LEVEL: ' + level, WIDTH/2, HEIGHT/2-40, 8, 15, 'center', 'top', 6, 12, ]);
   }
@@ -654,7 +659,7 @@ draw=(dt)=>{
 
 //---------Spawners---------------------
 spawnSplosion=(x,y,z,a=99)=>{
-  
+
   if(a==99){ // enemy died
     sound=new Audio("splode.ogg");
     sound.volume=.5/(1+z/8);
