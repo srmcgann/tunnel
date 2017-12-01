@@ -77,8 +77,8 @@ function init() {
   .setKey("h")
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
   .addButton("reset", reset)
-  //.addRange("horz wave", 0, 40, 2.5, .01)
-  //.addRange("vert wave", 0, 40, 7.13, .01)
+  .addRange("horz wave", 0, 40, 2.5, .01)
+  .addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("spokeColor", 0, 63, 7, 1)
   //.addRange("Spokes", 1, 30, 3, 1)
   .addRange("FOV", 100, 1000, 380, .1)
@@ -135,7 +135,7 @@ function startup(){
   switch(level){
     case 1:
       speed=25;
-      horz=0;
+      //horz=0;
       powerupSpawnFreq=0;
       targetKills=20
       bumpSpawnFreq=0
@@ -146,7 +146,7 @@ function startup(){
       break;
       case 2:
         speed=25;
-        horz=1;
+        //horz=1;
         powerupSpawnFreq=200;
         targetKills=25
         bumpSpawnFreq=500
@@ -157,8 +157,6 @@ function startup(){
         break;
     case 3:
       speed=30;
-      horz = 2.5;
-      vert = 2;
       powerupSpawnFreq=700;
       targetKills=35
       bumpSpawnFreq=200
@@ -226,8 +224,8 @@ loop=(dt)=>{
 step=(dt)=>{
 
   //hook up control panel vars
-  //horz = panel.getValue('horz wave');
-  //vert = panel.getValue('vert wave');
+  horz = panel.getValue('horz wave');
+  vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
   FOV = panel.getValue('FOV');
 
