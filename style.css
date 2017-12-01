@@ -17,6 +17,8 @@ html,body{
   margin:auto;
   width: 1287px;
   height: 768px;
+  border:1px solid #123;
+  border-radius:25px;
 
   /*//transform:translate(-50%, -25%);*/
   image-rendering: optimizeSpeed;

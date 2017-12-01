@@ -1,12 +1,33 @@
-function init() {
+function makeHttpObject() {
+  try {return new XMLHttpRequest();}
+  catch (error) {}
+  try {return new ActiveXObject("Msxml2.XMLHTTP");}
+  catch (error) {}
+  try {return new ActiveXObject("Microsoft.XMLHTTP");}
+  catch (error) {}
+  throw new Error("Could not create HTTP request object.");
+}
+function httpGet(url){
+  var request = makeHttpObject();
+  request.open("GET", url, true);
+  request.send(null);
+  request.onreadystatechange = function() {
+    if (request.readyState == 4)
+      highScores=JSON.parse(request.responseText);
+  };
+}
 
+function init() {
+  
   stats = new Stats();
   document.body.appendChild( stats.dom );
 
   spritesheet = new Image();
   spritesheet.src = "assets/sprites.png";
   level=1;
-
+  highScores=[];
+  httpGet("https://rotoblaster.tk/scores.php");
+  
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
     purpleBall: { x:64, y:0, width: 30, height: 30},
@@ -119,9 +140,10 @@ function init() {
     }
     soundtrack=new Audio("cantelope.mp3");
     soundtrack.loop=1;
-    soundtrack.volume=.6;
+    soundtrack.volume=.4;
     soundtrack.play();
-    startup();
+    gameInPlay=0;
+    firstRun=1;
     loop();
   }
 }
@@ -131,7 +153,8 @@ function startup(){
   gunsActive = Array(99).fill(1);
   enemiesKilledThisLevel=0
   levelUpDisplayTimer=t+100;
-  gameInPlay=1
+  gameInPlay=1;
+  firstRun=0;
   switch(level){
     case 1:
       speed=25;
@@ -144,17 +167,17 @@ function startup(){
       shotInterval=8
       spokes=3
       break;
-      case 2:
-        speed=25;
-        //horz=1;
-        powerupSpawnFreq=200;
-        targetKills=25
-        bumpSpawnFreq=500
-        ringSpawnFreq=000
-        enemySpawnFreq=30
-        shotInterval=8
-        if(spokes < 3)spokes=3
-        break;
+    case 2:
+      speed=25;
+      //horz=1;
+      powerupSpawnFreq=200;
+      targetKills=25
+      bumpSpawnFreq=500
+      ringSpawnFreq=000
+      enemySpawnFreq=30
+      shotInterval=8
+      if(spokes < 3)spokes=3
+      break;
     case 3:
       speed=30;
       powerupSpawnFreq=700;
@@ -214,12 +237,42 @@ loop=(dt)=>{
   let now = new Date().getTime();
   dt = Math.min(1, (now - last) / 1000);
   t += dt;
-  step(dt);
-  draw(dt);
+  if(firstRun){
+    drawScores();
+  }else{
+    step(dt);
+    draw(dt);
+  }
   render(dt);
   stats.end();
   requestAnimationFrame(loop);
 }
+
+
+drawScores=()=>{
+  clear(0);
+  if(highScores.length){
+    for(let i=0;i<10;i++){
+      renderTarget = BUFFER;
+      if(i<highScores.length){
+        var score = highScores[i].score + " " + highScores[i].name.toUpperCase() + '-'
+      }else{
+        var score = "...";
+      }
+      text([ score, 40, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, 1, ]);
+    }
+    outline(BUFFER, SCREEN, 6,9,6,3);
+    renderTarget = SCREEN;
+    renderSource = BUFFER;
+    spr();
+    text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/2%64, ]);
+  }else{
+      renderTarget = SCREEN;
+      text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
+  }
+  if(spacekey)startup()
+}
+
 
 step=(dt)=>{
 
@@ -283,18 +336,19 @@ step=(dt)=>{
     if(e.z - playerZ < 0.2){
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
-          let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
+          let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
             if(Math.abs(e.theta - p) < 0.2 ){
               X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
-              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
+              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ,150);
               eArr.splice(eIndex, 1);
               gunsActive[i]=0;
               spokes--;
+              playerTheta+=Math.PI*2/spokes;
               break;
             }
           }
@@ -318,14 +372,14 @@ step=(dt)=>{
     if(e.z - playerZ < 0.2){
       for(let i = 0; i < spokes; ++i){
         if(gunsActive[i]){
-          let p=playerTheta+(Math.PI*2/spokes*i)*squeeze
+          let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
           while(p>Math.PI)p-=Math.PI*2
           while(p<-Math.PI)p+=Math.PI*2
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
             if(Math.abs(e.theta - p) < 0.2 ){
               X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
-              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
+              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
               spawnSpoke();
               eArr.splice(eIndex, 1);
               break;
@@ -357,17 +411,18 @@ step=(dt)=>{
         if(gunsActive[i]){
           //check for squeeze to prevent killing all at once from sideways movement
           if(squeeze > .98 || squeeze < .02){
-            p=(playerTheta+(Math.PI*2/spokes*i)*squeeze)
+            p=(playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze)
             while(p>Math.PI)p-=Math.PI*2
             while(p<-Math.PI)p+=Math.PI*2
             pmap = p.map(-Math.PI, Math.PI, 0, sides)|0
             //console.info('spokeTheta: '+pmap+' bumpTheta: '+ e.theta + ' difference: ' +(e.theta-pmap));
             if(Math.abs(e.theta-pmap) == sides/2){
               X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
-              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*i*squeeze),Y+=C(p);
+              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
               spawnSplosion(X,Y,playerZ,150);
               gunsActive[i]=0;
               spokes--;
+              playerTheta-=Math.PI*2/spokes;
               break;
             }
           }
@@ -398,7 +453,7 @@ step=(dt)=>{
       if(gunsActive[i]){
         bullets.push({
           z:playerZ,
-          theta:playerTheta+(Math.PI*2/spokes*i)*squeeze
+          theta:playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
         });
       }
     }
@@ -653,9 +708,10 @@ draw=(dt)=>{
         moveTo3d(X,Y,Z)
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
-            cursorColor = i?spokeColor:12;
+            cursorColor = (i-spokes/2+.5)|0?spokeColor:12;
             X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
-            X+=S( p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*i*squeeze ),Y+=C(p), lineTo3d(X,Y,Z)
+            p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*((i+.5)-spokes/2)*squeeze
+            X+=S( p ),Y+=C(p), lineTo3d(X,Y,Z)
             rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
           }
         }
