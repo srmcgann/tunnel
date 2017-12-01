@@ -60,6 +60,8 @@ function init() {
   lastSpokeScore=0;
   spokePowerup=50000;
   spokeGet = false;
+  horz=0;
+  vert=0;
 
   enemies = [];
   bullets = [];
@@ -75,8 +77,8 @@ function init() {
   .setKey("h")
   //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
   .addButton("reset", reset)
-  .addRange("horz wave", 0, 40, 2.5, .01)
-  .addRange("vert wave", 0, 40, 7.13, .01)
+  //.addRange("horz wave", 0, 40, 2.5, .01)
+  //.addRange("vert wave", 0, 40, 7.13, .01)
   .addRange("spokeColor", 0, 63, 7, 1)
   //.addRange("Spokes", 1, 30, 3, 1)
   .addRange("FOV", 100, 1000, 380, .1)
@@ -132,16 +134,40 @@ function startup(){
   gameInPlay=1
   switch(level){
     case 1:
+      speed=25;
+      horz=0;
+      powerupSpawnFreq=0;
+      targetKills=20
+      bumpSpawnFreq=0
+      ringSpawnFreq=0
+      enemySpawnFreq=35
+      shotInterval=8
+      spokes=3
+      break;
+      case 2:
+        speed=25;
+        horz=1;
+        powerupSpawnFreq=200;
+        targetKills=25
+        bumpSpawnFreq=500
+        ringSpawnFreq=000
+        enemySpawnFreq=30
+        shotInterval=8
+        if(spokes < 3)spokes=3
+        break;
+    case 3:
       speed=30;
+      horz = 2.5;
+      vert = 2;
       powerupSpawnFreq=700;
       targetKills=35
       bumpSpawnFreq=200
       ringSpawnFreq=1500
       enemySpawnFreq=30
-      shotInterval=10
-      spokes=3
+      shotInterval=8
+      if(spokes < 3)spokes=3
       break;
-    case 2:
+    case 4:
       speed=35;
       powerupSpawnFreq=600;
       targetKills=40
@@ -149,9 +175,9 @@ function startup(){
       ringSpawnFreq=1200
       enemySpawnFreq=26
       shotInterval=9
-      spokes=4
+      if(spokes < 4)spokes=4
       break;
-    case 3:
+    case 5:
       speed=40;
       powerupSpawnFreq=500;
       targetKills=50
@@ -159,9 +185,9 @@ function startup(){
       ringSpawnFreq=1000
       enemySpawnFreq=23
       shotInterval=8
-      spokes=5
+      if(spokes < 5)spokes=5
       break;
-    case 4:
+    case 6:
       speed=45;
       powerupSpawnFreq=300;
       targetKills=60
@@ -169,9 +195,9 @@ function startup(){
       ringSpawnFreq=600
       enemySpawnFreq=18
       shotInterval=7
-      spokes=6
+      if(spokes < 6)spokes=6
       break;
-    case 5:
+    case 7:
       speed=45;
       powerupSpawnFreq=50;
       targetKills=100
@@ -200,8 +226,8 @@ loop=(dt)=>{
 step=(dt)=>{
 
   //hook up control panel vars
-  horz = panel.getValue('horz wave');
-  vert = panel.getValue('vert wave');
+  //horz = panel.getValue('horz wave');
+  //vert = panel.getValue('vert wave');
   spokeColor = panel.getValue('spokeColor');
   FOV = panel.getValue('FOV');
 
