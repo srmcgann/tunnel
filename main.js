@@ -18,7 +18,7 @@ function httpGet(url){
 }
 
 function init() {
-  
+
   stats = new Stats();
   document.body.appendChild( stats.dom );
 
@@ -27,7 +27,7 @@ function init() {
   level=1;
   highScores=[];
   httpGet("https://rotoblaster.tk/scores.php");
-  
+
   sprites = {
     lightmap: { x:0, y:0, width: 63, height: 32 },
     purpleBall: { x:64, y:0, width: 30, height: 30},
@@ -250,10 +250,10 @@ loop=(dt)=>{
 
 
 drawScores=()=>{
-  clear(0);
+  renderTarget = SCREEN; clear(0);
+  renderTarget = BUFFER; clear(0);
   if(highScores.length){
     for(let i=0;i<10;i++){
-      renderTarget = BUFFER;
       if(i<highScores.length){
         var score = highScores[i].score + " " + highScores[i].name.toUpperCase() + '-'
       }else{
@@ -267,6 +267,7 @@ drawScores=()=>{
     spr();
     text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/2%64, ]);
   }else{
+    clear(0);
       renderTarget = SCREEN;
       text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
   }
@@ -722,6 +723,7 @@ draw=(dt)=>{
       bullets=[];
       pal = gameoverPal
       renderTarget = BUFFER;
+      clear(0);
       text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 1, ]);
       text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, 1+t/9%10, ]);
       outline(BUFFER, SCREEN, 6,9,6,3);
