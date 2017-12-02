@@ -25,7 +25,7 @@
     request.onreadystatechange = function() {
       if (request.readyState == 4){
         let highScores=JSON.parse(request.responseText);
-        if(highScores.length==1 || score>=highScores[highScores.length-2].score){
+        if(highScores.length==1 || score>=highScores[highScores.length-2].score){
           switch(Math.random()*321|0){
             case 0: d = "Adam Baum"; break;
             case 1: d = "Adam Zapel"; break;
@@ -1227,6 +1227,15 @@
     bumps=[];
     powerups=[];
     score=0;
+    spacekey=0;
+    leftkey=0;
+    upkey=0;
+    rightkey=0;
+    downkey=0;
+    xkey=0;
+    ckey=0;
+    rkey=0;
+    ctrlkey=0;
   }
 
   onkeydown=e=>{
