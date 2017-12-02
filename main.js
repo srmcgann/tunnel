@@ -27,7 +27,7 @@
         let highScores=JSON.parse(request.responseText);
         alert(highScores.length);
         if(highScores.length==1 || score>=highScores[highScores.length-2].score){
-          switch(Math.random()*99|0){
+          switch(Math.random()*321|0){
             case 0: d = "Adam Baum"; break;
             case 1: d = "Adam Zapel"; break;
             case 2: d = "Al Bino"; break;
