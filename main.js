@@ -1,4 +1,4 @@
-(()=>{ 
+(()=>{
   function makeHttpObject() {
     try {return new XMLHttpRequest();}
     catch (error) {}
@@ -397,7 +397,6 @@
       lightmap: { x:0, y:0, width: 63, height: 32 },
       purpleBall: { x:64, y:0, width: 30, height: 30},
       laserCannon: { x:94, y:0, width: 29, height: 30},
-      blockade: {x:123, y:0, width: 30, height: 30},
       star: {x:0, y:30, width: 65, height: 80}
     }
 
@@ -519,8 +518,8 @@
       case 1:
         speed=25;
         //horz=0;
-        powerupSpawnFreq=0;
-        targetKills=20
+        powerupSpawnFreq=800;
+        targetKills=60
         bumpSpawnFreq=0
         ringSpawnFreq=0
         enemySpawnFreq=35
@@ -531,7 +530,7 @@
         speed=25;
         //horz=1;
         powerupSpawnFreq=200;
-        targetKills=25
+        targetKills=45
         bumpSpawnFreq=500
         ringSpawnFreq=000
         enemySpawnFreq=30
@@ -619,13 +618,13 @@
         }else{
           var score = "...";
         }
-        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, 1, ]);
+        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, 1, 4, 7, 3]);
       }
       outline(BUFFER, SCREEN, 6,9,6,3);
       renderTarget = SCREEN;
       renderSource = BUFFER;
       spr();
-      text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/4%10, ]);
+      text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/4%10, 4, 7, 3]);
     }else{
       clear(0);
         renderTarget = SCREEN;
@@ -1057,7 +1056,7 @@
 
           //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
-          rspr3d(X,Y,Z, sprites.star, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
+          rspr3d(X,Y,Z, sprites.star, 3, en.theta+Math.PI*2+t/30, gameInPlay? enemyPal : gameoverPal );
         }
       }
       pal = palDefault;
@@ -1090,18 +1089,19 @@
         pal = gameoverPal
         renderTarget = BUFFER;
         clear(0);
-        text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 1, ]);
-        text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, 1+t/9%10, ]);
+        text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 1, 10, 10, 5 ]);
+        text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, 1+t/9%10, 3, 10, 3]);
         outline(BUFFER, SCREEN, 6,9,6,3);
-        renderTarget = SCREEN;
-        renderSource = BUFFER;
-        spr();
+        renderTarget = SCREEN; renderSource = BUFFER; spr();
     }
     text([ 'SCORE: ' + score.pad(10), WIDTH/2+50, 10, 2, 15, 'center', 'top', 1, 9, ]);
     text([ 'LEVEL: ' + level, WIDTH/2-100, 10, 2, 15, 'center', 'top', 1, 9, ]);
 
     if(t<=levelUpDisplayTimer){
-      text([ 'LEVEL: ' + level, WIDTH/2, HEIGHT/2-40, 8, 15, 'center', 'top', 6, 12, ]);
+      renderTarget = BUFFER; clear(0);
+      text([ 'LEVEL: ' + level, WIDTH/2, HEIGHT/2-40, 8, 15, 'center', 'top', 6, 16,  10, 10, 3]);
+      outline(BUFFER, SCREEN, 11,10,12,13);
+      renderTarget = SCREEN; renderSource = BUFFER; spr();
     }
   }//end draw()
 
