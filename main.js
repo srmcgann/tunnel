@@ -435,7 +435,7 @@
     //initial player position and key inputs
     OPZ=playerZ=5;
     playerTheta=0;
-    ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=0
+    ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0
     shotTimer=0;
     //amount of random bumps in tunnel sides
     bumpsAmount = 1;
@@ -515,22 +515,22 @@
     firstRun=0;
     postedHighScore=0;
     switch(level){
-      case 1:
+      case 1:  // no bumps, just enemies
         speed=25;
         //horz=0;
-        powerupSpawnFreq=800;
-        targetKills=60
-        bumpSpawnFreq=0
+        powerupSpawnFreq=1000;
+        targetKills=100
+        bumpSpawnFreq=1000
         ringSpawnFreq=0
         enemySpawnFreq=35
         shotInterval=8
         spokes=3
         break;
       case 2:
-        speed=25;
+        speed=27;
         //horz=1;
-        powerupSpawnFreq=200;
-        targetKills=45
+        powerupSpawnFreq=1000;
+        targetKills=100
         bumpSpawnFreq=500
         ringSpawnFreq=000
         enemySpawnFreq=30
@@ -539,54 +539,87 @@
         break;
       case 3:
         speed=30;
-        powerupSpawnFreq=700;
-        targetKills=35
-        bumpSpawnFreq=200
-        ringSpawnFreq=1500
+        powerupSpawnFreq=1000;
+        targetKills=100
+        bumpSpawnFreq=300
+        ringSpawnFreq=00
         enemySpawnFreq=30
         shotInterval=8
         if(spokes < 3)spokes=3
         break;
       case 4:
-        speed=35;
+        speed=33;
         powerupSpawnFreq=600;
-        targetKills=40
+        targetKills=100
         bumpSpawnFreq=170
-        ringSpawnFreq=1200
+        ringSpawnFreq=00
         enemySpawnFreq=26
         shotInterval=9
-        if(spokes < 4)spokes=4
+        //if(spokes < 4)spokes=4
         break;
       case 5:
         speed=40;
         powerupSpawnFreq=500;
-        targetKills=50
+        targetKills=100
         bumpSpawnFreq=140
-        ringSpawnFreq=1000
+        ringSpawnFreq=000
         enemySpawnFreq=23
         shotInterval=8
-        if(spokes < 5)spokes=5
+        //if(spokes < 5)spokes=5
         break;
       case 6:
         speed=45;
         powerupSpawnFreq=300;
-        targetKills=60
+        targetKills=200
         bumpSpawnFreq=120
-        ringSpawnFreq=600
+        ringSpawnFreq=00
         enemySpawnFreq=18
         shotInterval=7
-        if(spokes < 6)spokes=6
+        //if(spokes < 6)spokes=6
         break;
       case 7:
         speed=45;
         powerupSpawnFreq=50;
         targetKills=100
         bumpSpawnFreq=100
-        ringSpawnFreq=100
-        enemySpawnFreq=1000
+        ringSpawnFreq=2000
+        enemySpawnFreq=30
         shotInterval=6
-        spokes=8
+        //spokes=8
         break;
+
+        case 8:
+          speed=45;
+          powerupSpawnFreq=50;
+          targetKills=100
+          bumpSpawnFreq=100
+          ringSpawnFreq=1500
+          enemySpawnFreq=08
+          shotInterval=6
+          //spokes=8
+          break;
+
+        case 9:
+          speed=45;
+          powerupSpawnFreq=50;
+          targetKills=100
+          bumpSpawnFreq=100
+          ringSpawnFreq=1200
+          enemySpawnFreq=08
+          shotInterval=6
+          //spokes=8
+          break;
+
+        case 9:
+          speed=50;
+          powerupSpawnFreq=50;
+          targetKills=100
+          bumpSpawnFreq=100
+          ringSpawnFreq=4000
+          enemySpawnFreq=03
+          shotInterval=6
+          //spokes=8
+          break;
     }
   }
 
@@ -635,6 +668,8 @@
 
 
   step=(dt)=>{
+
+    if(gameInPlay && t%1000>1)score+=spokes
 
     //hook up control panel vars
     horz = panel.getValue('horz wave');
@@ -740,6 +775,7 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSpoke();
+                score+=500;
                 eArr.splice(eIndex, 1);
                 break;
               }
@@ -825,6 +861,8 @@
       }
     }
 
+
+
     //handle bullets
     for(let i=0;i<bullets.length;i++){
 
@@ -846,14 +884,14 @@
               X=S(enemies[m].theta)+S(s*2*j*Z+d)*3/FOV*300-f
               Y=C(enemies[m].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
               enemies[m].health-=1
-              score+=5
+              score+=1*spokes
               spawnSplosion(X,Y,Z,10)
               if(enemies[m].health < 1){
                 spawnSplosion(X,Y,Z)
                 enemiesKilledThisLevel++;
                 enemies.splice(m,1)
                 bullets.splice(i,1)
-                score+=100
+                score+=20*spokes
               }
             }
           }
@@ -907,6 +945,11 @@
     levelUpDisplayTimer=t+100;
     startup()
   }
+  levelDown=()=>{
+    level--;
+    levelUpDisplayTimer=t+100;
+    startup()
+  }
 
 
   draw=(dt)=>{
@@ -916,6 +959,8 @@
     //fcir(-1,1,5,50,22);
     //fillCircle(50,50,10,22)
     //tunnel draw routine
+    text([ 'NEXT LEVEL IN', WIDTH/2+160, HEIGHT/2+70 , 2, 1, 'center', 'top', 1, 30])
+    text([ (targetKills-enemiesKilledThisLevel).toString(), WIDTH/2+160, HEIGHT/2+80, 8, 15, 'center', 'top', 5, 30,]);
     for(m=depth;-1+m--;){
       for(i=sides;i--;){
         // q is the depth (Z) value and is also used to generate curvature of the tunnel
@@ -1249,6 +1294,8 @@
       case 67:ckey=1;break;
       case 82:rkey=1;break;
       case 17:ctrlkey=1;break;
+      case 69:ekey=1;break;
+      case 87:wkey=1;break;
     }
   }
 
@@ -1263,6 +1310,9 @@
       case 67:ckey=0;break;
       case 82:rkey=0;break;
       case 17:ctrlkey=0;break;
+      case 69:ekey=0;levelUp();break;
+      case 87:wkey=0;levelDown();break;
+
     }
   }
 
