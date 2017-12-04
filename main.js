@@ -515,10 +515,10 @@
         speed=25;
         //horz=0;
         powerupSpawnFreq=1000;
-        targetKills=100
+        targetKills=20
         bumpSpawnFreq=1000
         ringSpawnFreq=0
-        enemySpawnFreq=35
+        enemySpawnFreq=50
         shotInterval=8
         spokes=3
         break;
@@ -526,7 +526,7 @@
         speed=27;
         //horz=1;
         powerupSpawnFreq=1000;
-        targetKills=100
+        targetKills=50
         bumpSpawnFreq=500
         ringSpawnFreq=000
         enemySpawnFreq=30
@@ -536,7 +536,7 @@
       case 3:
         speed=30;
         powerupSpawnFreq=1000;
-        targetKills=100
+        targetKills=70
         bumpSpawnFreq=300
         ringSpawnFreq=00
         enemySpawnFreq=30
@@ -546,9 +546,9 @@
       case 4:
         speed=33;
         powerupSpawnFreq=600;
-        targetKills=100
+        targetKills=80
         bumpSpawnFreq=170
-        ringSpawnFreq=00
+        ringSpawnFreq=100
         enemySpawnFreq=26
         shotInterval=9
         //if(spokes < 4)spokes=4
@@ -556,9 +556,9 @@
       case 5:
         speed=40;
         powerupSpawnFreq=500;
-        targetKills=100
+        targetKills=90
         bumpSpawnFreq=140
-        ringSpawnFreq=000
+        ringSpawnFreq=100
         enemySpawnFreq=23
         shotInterval=8
         //if(spokes < 5)spokes=5
@@ -566,9 +566,9 @@
       case 6:
         speed=45;
         powerupSpawnFreq=300;
-        targetKills=200
+        targetKills=100
         bumpSpawnFreq=120
-        ringSpawnFreq=00
+        ringSpawnFreq=100
         enemySpawnFreq=18
         shotInterval=7
         //if(spokes < 6)spokes=6
@@ -576,7 +576,7 @@
       case 7:
         speed=45;
         powerupSpawnFreq=50;
-        targetKills=100
+        targetKills=110
         bumpSpawnFreq=100
         ringSpawnFreq=2000
         enemySpawnFreq=30
@@ -587,10 +587,10 @@
         case 8:
           speed=45;
           powerupSpawnFreq=50;
-          targetKills=100
+          targetKills=5
           bumpSpawnFreq=100
-          ringSpawnFreq=1500
-          enemySpawnFreq=08
+          ringSpawnFreq=10
+          enemySpawnFreq=100
           shotInterval=6
           //spokes=8
           break;
@@ -600,18 +600,18 @@
           powerupSpawnFreq=50;
           targetKills=100
           bumpSpawnFreq=100
-          ringSpawnFreq=1200
+          ringSpawnFreq=100
           enemySpawnFreq=08
           shotInterval=6
           //spokes=8
           break;
 
-        case 9:
+        case 10:
           speed=50;
           powerupSpawnFreq=50;
           targetKills=100
           bumpSpawnFreq=100
-          ringSpawnFreq=4000
+          ringSpawnFreq=40
           enemySpawnFreq=03
           shotInterval=6
           //spokes=8
@@ -735,7 +735,7 @@
       //e.theta+=.01;
 
       //check for collision with player
-      if(e.z - playerZ < 0.2){
+      if(Math.abs(e.z - playerZ + 1) < 1){
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
             let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
@@ -770,7 +770,7 @@
       //e.theta+=.01;
 
       //check for collision with player
-      if(e.z - playerZ < 0.2){
+      if(Math.abs(e.z - playerZ+1) < 1){
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
             let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
@@ -778,7 +778,7 @@
             while(p<-Math.PI)p+=Math.PI*2
             //check for squeeze to prevent killing all at once from sideways movement
             if(squeeze > .98 || squeeze < .02){
-              if(Math.abs(e.theta - p) < 0.2 ){
+              if(Math.abs(e.theta - p) < 1 ){
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSpoke();
@@ -807,15 +807,14 @@
       //e.theta+=.01;
 
       //check for collision with player
-      if(e.z - playerZ < 0.2){
+      if(Math.abs(e.z - playerZ+1) < 1){
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
             let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
             while(p>Math.PI)p-=Math.PI*2
             while(p<-Math.PI)p+=Math.PI*2
-            //check for squeeze to prevent killing all at once from sideways movement
 
-              if(Math.abs(e.theta - p) < 0.2 ){
+              if(Math.abs(e.theta - p) < .2 ){
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnBubble(X,Y,playerZ,10);
@@ -849,7 +848,7 @@
     //handle bump collision
     bumps.forEach(function(e, eIndex, eArr){
       //check for collision with player
-      if(e.z == playerZ){
+      if(Math.abs(e.z - playerZ)<.2){
         for(let i = 0; i < spokes; ++i){
           if(gunsActive[i]){
             //check for squeeze to prevent killing all at once from sideways movement
@@ -1296,7 +1295,7 @@
   }
   spawnCoin=(a=1)=>{
     for(let i = 0; i < a; i++){
-      coins.push({z:depth,theta:Math.random()*sides|0,b:.2+Math.random()*.2});
+      coins.push({z:depth,theta:Math.random()*Math.PI*2-Math.PI,b:.2+Math.random()*.2});
       //bumps.push({z:depth, theta:15, b:.2+Math.random()*.2});
     }
   }
