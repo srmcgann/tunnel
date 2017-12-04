@@ -387,6 +387,7 @@
     highScores=[];
     bullets = [];
     splosions = [];
+    bubbles = [];
     enemies = [];
     bumps=[];
     powerups=[];
@@ -775,6 +776,7 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSpoke();
+                spawnBubble(X,Y,playerZ,50);
                 score+=500;
                 eArr.splice(eIndex, 1);
                 break;
@@ -853,10 +855,15 @@
       shotTimer=t+shotInterval
       for(i=spokes;i--;){
         if(gunsActive[i]){
+          let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
           bullets.push({
             z:playerZ,
-            theta:playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
+            theta:t
           });
+          z=playerZ;
+          X=S(t)+S(s*2*j*z+d)*3/FOV*300-f;
+          Y=C(t)+C(s*3*j*z+e)*.5/FOV*300-g;
+          spawnBubble(X,Y,z,2);
         }
       }
     }
@@ -907,7 +914,7 @@
             while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
             bmap = bullets[i].theta.map(-Math.PI, Math.PI, 0, 16)|0
             if(Math.abs(bumps[m].theta - bmap) == 8){
-              Z = bullets[i].z;
+              Z = bullets[i].
               X=S(bullets[i].theta)+S(s*2*j*Z+d)*3/FOV*300-f
               Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
               spawnSplosion(X,Y,Z,10)
@@ -927,6 +934,17 @@
       splosions[i].y+=splosions[i].vy//+=.003 //gravity pulls particles down like a firework
       splosions[i].z+=splosions[i].vz
       splosions[i].s-=.075 // particle size diminishes
+    }
+
+    //handle bubbles
+    for(let i=0;i<bubbles.length;++i){
+      if(bubbles[i].s<.05)bubbles.splice(i,1)
+    }
+    for(let i=0;i<bubbles.length;++i){
+      bubbles[i].x+=bubbles[i].vx/2+(Math.random()-.5)*.05
+      bubbles[i].y+=bubbles[i].vy/2+(Math.random()-.5)*.05//+=.003 //gravity pulls particles down like a firework
+      bubbles[i].z-=bubbles[i].vz/2+(Math.random()-.5)*.05
+      bubbles[i].s-=.15 // particle size diminishes
     }
 
     //handleBumps
@@ -1033,7 +1051,19 @@
          // cursorColor = Math.round(splosions[i].s.map(0,1.6,16,21).clamp(16, 21 ))
           X=splosions[i].x
           Y=splosions[i].y
-          fcir(X,Y,Z,splosions[i].s*5);
+          fcir(X,Y,Z,splosions[i].s*7);
+        }
+      }
+
+      //draw bubbles
+      for(let i=bubbles.length;i--;){
+        Z=bubbles[i].z
+        if(m==(Z|0)){
+          cursorColor = 27;
+          cursorColor = Math.round( (4-bubbles[i].s).map(0,4,22,31).clamp(22, 31))
+          X=bubbles[i].x
+          Y=bubbles[i].y
+          cir(X,Y,Z, 6+(1/bubbles[i].s)*5);
         }
       }
 
@@ -1176,6 +1206,19 @@
       splosions.push({x,y,z,vx,vy,vz,s:2+Math.random()})
     }
   }
+
+  spawnBubble=(x,y,z,a=99)=>{
+    for(let i=a;i--;){
+      let splosionVelocity=Math.random()*.13
+      let p1=Math.PI*2*Math.random();
+      let p2=Math.PI*Math.random();
+      let vx=S(p1)*S(p2)*splosionVelocity
+      let vy=C(p1)*S(p2)*splosionVelocity
+      let vz=C(p2)*splosionVelocity
+      bubbles.push({x,y,z,vx,vy,vz,s:5+Math.random()})
+    }
+  }
+
   spawnBump=(a=1)=>{
     for(let i = 0; i < a; i++){
       bumps.push({z:depth,theta:Math.random()*sides|0,b:.2+Math.random()*.2});
