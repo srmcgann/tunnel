@@ -818,6 +818,9 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnBubble(X,Y,playerZ,10);
+                sound = new Audio("coin.ogg");
+                sound.volume=.7
+                sound.play();
                 score+=250;
                 eArr.splice(eIndex, 1);
                 break;
@@ -1000,6 +1003,9 @@
 
 
   levelUp=()=>{
+    sound = new Audio("levelup.ogg")
+    sound.volume=.7
+    sound.play()
     level++;
     levelUpDisplayTimer=t+100;
     startup()
@@ -1308,7 +1314,7 @@
   }
   spawnSpoke=()=>{
     sound=new Audio("powerup.ogg");
-    sound.volume=.75;
+    sound.volume=.8;
     sound.play()
     spokes+=gunsActive.indexOf(0)<spokes&&gunsActive.indexOf(0)!=-1?0:1;
     gunsActive[gunsActive.indexOf(0)] = 1;
