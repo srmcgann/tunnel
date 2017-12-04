@@ -391,15 +391,9 @@
     enemies = [];
     bumps=[];
     powerups=[];
+    coins=[];
     score=0;
     getHighScores();
-
-    sprites = {
-      lightmap: { x:0, y:0, width: 63, height: 32 },
-      purpleBall: { x:64, y:0, width: 30, height: 30},
-      laserCannon: { x:94, y:0, width: 29, height: 30},
-      star: {x:0, y:30, width: 65, height: 80}
-    }
 
     gameoverPal = [
        0,1,2,3,4,5,6,7,8,9,
@@ -441,6 +435,7 @@
     //amount of random bumps in tunnel sides
     bumpsAmount = 1;
     bumpVar=0
+    powerUpGet = false;
     squeeze=1
     score=0
     lastSpokeScore=0;
@@ -468,7 +463,7 @@
       lightmap: { x:0, y:0, width: 63, height: 32 },
       purpleBall: { x:64, y:0, width: 30, height: 30},
       laserCannon: { x:94, y:0, width: 29, height: 30},
-      blockade: {x:123, y:0, width: 30, height: 30},
+      coin: {x:124, y:0, width: 30, height: 30},
       star: {x:0, y:30, width: 65, height: 80}
     }
 
@@ -698,10 +693,9 @@
     if(t%bumpSpawnFreq<1)spawnBump();
     if(t%ringSpawnFreq<1)spawnBump(16);
 
-    // score-based spoke powerup
-    // if(score-lastSpokeScore > spokePowerup){
-    //   spawnSpoke();
-    // }
+    // spawn coins
+    if(t%100<1)spawnCoin();
+    if(t%1000<1)spawnCoin(16);
 
     // f & g are offsets to recenter the mouth of the tunnel
     // they coincide with the formulas below and should not be changed independently
@@ -719,7 +713,19 @@
       squeeze = (squeeze + .05).clamp(.01, 1)
     }
 
-    if(spokeGet > 0)spokeGet = (spokeGet - .05).clamp(0,1);
+    if(spokeGet > 0){
+      spokeGet = (spokeGet - .05).clamp(0,1);
+      for(i=spokes;i--;){
+        if(gunsActive[i]){
+          let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
+          //X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
+          z=playerZ;
+          X=S(t)+S(s*2*j*z+d)*3/FOV*300-f;
+          Y=C(t)+C(s*3*j*z+e)*.5/FOV*300-g;
+          spawnBubble(X,Y,z,2);
+        }
+      }
+    }
 
 
     enemies.sort(function(a,b){return b.z - a.z});
@@ -776,6 +782,7 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSpoke();
+                //powerupGet = true;
                 spawnBubble(X,Y,playerZ,50);
                 score+=500;
                 eArr.splice(eIndex, 1);
@@ -787,7 +794,42 @@
       }
       //reset position to back of tunnel if behind view
       if(e.z < 1){
-        e.z = depth;
+        eArr.splice(eIndex, 1);
+        e.theta = Math.random() * (Math.PI*2) - Math.PI;
+      }
+    })//end powerup check
+
+    //coins check
+    coins.sort(function(a,b){return b.z - a.z});
+    coins.forEach(function(e, eIndex, eArr){
+      //move down the tunnel
+      e.z-=speed/500;
+      //e.theta+=.01;
+
+      //check for collision with player
+      if(e.z - playerZ < 0.2){
+        for(let i = 0; i < spokes; ++i){
+          if(gunsActive[i]){
+            let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
+            while(p>Math.PI)p-=Math.PI*2
+            while(p<-Math.PI)p+=Math.PI*2
+            //check for squeeze to prevent killing all at once from sideways movement
+
+              if(Math.abs(e.theta - p) < 0.2 ){
+                X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
+                X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
+                spawnBubble(X,Y,playerZ,10);
+                score+=250;
+                eArr.splice(eIndex, 1);
+                break;
+              }
+
+          }
+        }
+      }
+      //kill at back of tunnel
+      if(e.z < 1){
+        eArr.splice(eIndex, 1);
         e.theta = Math.random() * (Math.PI*2) - Math.PI;
       }
     })//end powerup check
@@ -863,7 +905,7 @@
           z=playerZ;
           X=S(t)+S(s*2*j*z+d)*3/FOV*300-f;
           Y=C(t)+C(s*3*j*z+e)*.5/FOV*300-g;
-          spawnBubble(X,Y,z,2);
+          //spawnBubble(X,Y,z,2);
         }
       }
     }
@@ -977,7 +1019,7 @@
     //fcir(-1,1,5,50,22);
     //fillCircle(50,50,10,22)
     //tunnel draw routine
-    text([ 'NEXT LEVEL IN', WIDTH/2+160, HEIGHT/2+70 , 2, 1, 'center', 'top', 1, 30])
+    text([ 'KILLS TO NEXT LEVEL', WIDTH/2+160, HEIGHT/2+70 , 2, 1, 'center', 'top', 1, 30])
     text([ (targetKills-enemiesKilledThisLevel).toString(), WIDTH/2+160, HEIGHT/2+80, 8, 15, 'center', 'top', 5, 30,]);
     for(m=depth;-1+m--;){
       for(i=sides;i--;){
@@ -1120,6 +1162,25 @@
       }
       pal = palDefault;
 
+      //coin draw routine
+      cursorColor = 13;
+      for(let i = 0; i < coins.length; i++){
+        en = coins[i];
+        Z=en.z;
+        if(m==(Z|0)){ //for proper drawing order ;)
+          X=S(en.theta)*.8+S(s*2*j*Z+d)*3/FOV*300-f
+          Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
+
+          //  fcir(X,Y,Z,40);
+          renderSource = SPRITES;
+          rspr3d(X,Y,Z, sprites.coin, 3, en.theta+Math.PI*2);
+          // fcir(X,Y,Z,40);
+          // cursorColor = 11;
+          // fcir(X,Y,Z,30);
+        }
+      }
+      pal = palDefault;
+
 
       //powerup draw routine
       for(let i = 0; i < powerups.length; i++){
@@ -1149,7 +1210,7 @@
           moveTo3d(X,Y,Z)
           for(let i = 0; i < spokes; ++i){
             if(gunsActive[i]){
-              cursorColor = (i-spokes/2+.5)|0?spokeColor:12;
+              cursorColor = (i-spokes/2+.5)|0?spokeColor:22;
               X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
               p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*((i+.5)-spokes/2)*squeeze
               X+=S( p ),Y+=C(p), lineTo3d(X,Y,Z)
@@ -1232,6 +1293,12 @@
       size: 15,
       health: Math.random()>.5 ? 1 : 2,//+score/3000
     })
+  }
+  spawnCoin=(a=1)=>{
+    for(let i = 0; i < a; i++){
+      coins.push({z:depth,theta:Math.random()*sides|0,b:.2+Math.random()*.2});
+      //bumps.push({z:depth, theta:15, b:.2+Math.random()*.2});
+    }
   }
   spawnPowerup=()=>{
     powerups.push({
