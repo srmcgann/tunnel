@@ -778,7 +778,7 @@
             while(p<-Math.PI)p+=Math.PI*2
             //check for squeeze to prevent killing all at once from sideways movement
             if(squeeze > .98 || squeeze < .02){
-              if(Math.abs(e.theta - p) < 1 ){
+              if(Math.abs(e.theta - p) < .2 ){
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSpoke();
