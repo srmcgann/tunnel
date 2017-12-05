@@ -505,6 +505,7 @@
   function startup(){
 
     gunsActive = Array(99).fill(1);
+    spokes=3;
     enemiesKilledThisLevel=0
     levelUpDisplayTimer=t+100;
     gameInPlay=1;
@@ -516,7 +517,7 @@
         //horz=0;
         powerupSpawnFreq=1000;
         targetKills=20
-        bumpSpawnFreq=1000
+        bumpSpawnFreq=1010
         ringSpawnFreq=0
         enemySpawnFreq=50
         shotInterval=8
@@ -527,7 +528,7 @@
         //horz=1;
         powerupSpawnFreq=1000;
         targetKills=50
-        bumpSpawnFreq=500
+        bumpSpawnFreq=510
         ringSpawnFreq=000
         enemySpawnFreq=30
         shotInterval=8
@@ -537,7 +538,7 @@
         speed=30;
         powerupSpawnFreq=1000;
         targetKills=70
-        bumpSpawnFreq=300
+        bumpSpawnFreq=310
         ringSpawnFreq=00
         enemySpawnFreq=30
         shotInterval=8
@@ -558,7 +559,7 @@
         powerupSpawnFreq=500;
         targetKills=90
         bumpSpawnFreq=140
-        ringSpawnFreq=1500
+        ringSpawnFreq=1510
         enemySpawnFreq=23
         shotInterval=8
         //if(spokes < 5)spokes=5
@@ -747,9 +748,10 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSplosion(X,Y,playerZ,150);
-                eArr.splice(eIndex, 1);
-                gunsActive[i]=0;
                 spokes--;
+                //gunsActive[i]=0;
+                playerTheta=e.theta+Math.PI
+                eArr.splice(eIndex, 1);
                 break;
               }
             }
@@ -813,19 +815,17 @@
             let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
             while(p>Math.PI)p-=Math.PI*2
             while(p<-Math.PI)p+=Math.PI*2
-
-              if(Math.abs(e.theta - p) < .2 ){
-                X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
-                X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
-                spawnBubble(X,Y,playerZ,10);
-                sound = new Audio("coin.ogg?2");
-                sound.volume=.2
-                sound.play();
-                score+=250;
-                eArr.splice(eIndex, 1);
-                break;
-              }
-
+            if(Math.abs(e.theta - p) < .2 ){
+              X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
+              X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
+              spawnBubble(X,Y,playerZ,10);
+              sound = new Audio("coin.ogg?2");
+              sound.volume=.2
+              sound.play();
+              score+=250;
+              eArr.splice(eIndex, 1);
+              break;
+            }
           }
         }
       }
@@ -865,8 +865,9 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSplosion(X,Y,playerZ,150);
-                gunsActive[i]=0;
+                //gunsActive[i]=0;
                 spokes--;
+                playerTheta=e.theta+Math.PI
                 break;
               }
             }
