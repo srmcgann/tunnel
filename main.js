@@ -676,7 +676,7 @@
     //rotate palette index for flashing powerups
     if(t%4<1)enemyPal[9] = 8 + t%7|0
     //rotate palette index for enemy outline, for higher health enemies
-    if(t%2<1)enemyPal[3] = 3 + t%5|0
+    if(t%12<1)enemyPal[2] = 2 + t%7|0
 
 
     //check for reset
@@ -1158,11 +1158,11 @@
 
           //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
-          if(en.health > 1){
+          // if(en.health > 1){
             rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
-          }else {
-            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
-          }
+          // }else {
+          //   rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
+          // }
         }
       }
       pal = palDefault;
@@ -1178,7 +1178,7 @@
 
           //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
-          rspr3d(X,Y,Z, sprites.coin, 3, en.theta+Math.PI*2);
+          rspr3d(X,Y,Z, sprites.coin, 3, en.theta+Math.PI*2+t/2);
           // fcir(X,Y,Z,40);
           // cursorColor = 11;
           // fcir(X,Y,Z,30);
