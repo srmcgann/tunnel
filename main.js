@@ -1,4 +1,16 @@
 (()=>{
+
+  var score = 0,
+  level=1,
+  highScores=[],bullets = [],splosions = [],
+  bubbles = [],enemies = [],bumps=[],powerups=[],coins=[],
+  spritesheet,gameOverPal,enemyPal,last = 0,sides,
+  depth,LUT = [],w,h,v,s,
+  OPZ=playerZ=5,playerTheta=0,
+  ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
+  bumpsAmount = 1,bumpVar=0,powerUpGet = false,squeeze=1,score=0,
+  lastSpokeScore=0,spokePowerup=50000,spokeGet = false,horz=0,vert=0;
+
   function makeHttpObject() {
     try {return new XMLHttpRequest();}
     catch (error) {}
