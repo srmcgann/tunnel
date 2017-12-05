@@ -548,7 +548,7 @@
         powerupSpawnFreq=600;
         targetKills=80
         bumpSpawnFreq=170
-        ringSpawnFreq=100
+        ringSpawnFreq=2000
         enemySpawnFreq=26
         shotInterval=9
         //if(spokes < 4)spokes=4
@@ -558,7 +558,7 @@
         powerupSpawnFreq=500;
         targetKills=90
         bumpSpawnFreq=140
-        ringSpawnFreq=100
+        ringSpawnFreq=1500
         enemySpawnFreq=23
         shotInterval=8
         //if(spokes < 5)spokes=5
@@ -568,7 +568,7 @@
         powerupSpawnFreq=300;
         targetKills=100
         bumpSpawnFreq=120
-        ringSpawnFreq=100
+        ringSpawnFreq=1000
         enemySpawnFreq=18
         shotInterval=7
         //if(spokes < 6)spokes=6
@@ -578,7 +578,7 @@
         powerupSpawnFreq=50;
         targetKills=110
         bumpSpawnFreq=100
-        ringSpawnFreq=2000
+        ringSpawnFreq=9000
         enemySpawnFreq=30
         shotInterval=6
         //spokes=8
@@ -589,7 +589,7 @@
           powerupSpawnFreq=50;
           targetKills=5
           bumpSpawnFreq=100
-          ringSpawnFreq=10
+          ringSpawnFreq=600
           enemySpawnFreq=100
           shotInterval=6
           //spokes=8
@@ -600,7 +600,7 @@
           powerupSpawnFreq=50;
           targetKills=100
           bumpSpawnFreq=100
-          ringSpawnFreq=100
+          ringSpawnFreq=500
           enemySpawnFreq=08
           shotInterval=6
           //spokes=8
@@ -611,7 +611,7 @@
           powerupSpawnFreq=50;
           targetKills=100
           bumpSpawnFreq=100
-          ringSpawnFreq=40
+          ringSpawnFreq=400
           enemySpawnFreq=03
           shotInterval=6
           //spokes=8
