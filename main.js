@@ -1004,7 +1004,7 @@
 
   levelUp=()=>{
     sound = new Audio("levelup.ogg")
-    sound.volume=.7
+    sound.volume=.5
     sound.play()
     level++;
     levelUpDisplayTimer=t+100;
