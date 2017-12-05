@@ -644,7 +644,7 @@
     if(highScores.length){
       for(let i=0;i<10;i++){
         if(i<highScores.length-1){
-          var score = parseInt(highScores[i].score).pad(7) + " " + highScores[i].name.toUpperCase() + '-'
+          var score = parseInt(highScores[i].score) + " " + highScores[i].name.toUpperCase() + '-'
         }else{
           var score = "...";
         }
@@ -666,7 +666,7 @@
 
   step=(dt)=>{
 
-    if(gameInPlay && t%1000>1)score+=spokes
+    //if(gameInPlay && t%1000>1)score+=spokes
 
     //hook up control panel vars
     horz = panel.getValue('horz wave');
@@ -786,7 +786,7 @@
                 spawnSpoke();
                 //powerupGet = true;
                 spawnBubble(X,Y,playerZ,50);
-                score+=500;
+                score+=100*spokes;
                 eArr.splice(eIndex, 1);
                 break;
               }
@@ -822,7 +822,7 @@
               sound = new Audio("coin.ogg?2");
               sound.volume=.2
               sound.play();
-              score+=250;
+              score+=50*spokes;
               eArr.splice(eIndex, 1);
               break;
             }
@@ -936,14 +936,14 @@
               X=S(enemies[m].theta)+S(s*2*j*Z+d)*3/FOV*300-f
               Y=C(enemies[m].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
               enemies[m].health-=1
-              score+=1*spokes
+              score+=15*spokes
               spawnSplosion(X,Y,Z,10)
               if(enemies[m].health < 1){
                 spawnSplosion(X,Y,Z)
                 enemiesKilledThisLevel++;
                 enemies.splice(m,1)
                 bullets.splice(i,1)
-                score+=20*spokes
+                score+=25*spokes
               }
             }
           }
@@ -959,7 +959,7 @@
             while(bullets[i].theta<-Math.PI)bullets[i].theta+=Math.PI*2
             bmap = bullets[i].theta.map(-Math.PI, Math.PI, 0, 16)|0
             if(Math.abs(bumps[m].theta - bmap) == 8){
-              Z = bullets[i].
+              Z = bullets[i].z
               X=S(bullets[i].theta)+S(s*2*j*Z+d)*3/FOV*300-f
               Y=C(bullets[i].theta)+C(s*3*j*Z+e)*.5/FOV*300-g
               spawnSplosion(X,Y,Z,10)
@@ -1025,7 +1025,7 @@
     //fcir(-1,1,5,50,22);
     //fillCircle(50,50,10,22)
     //tunnel draw routine
-    text([ 'KILLS TO NEXT LEVEL', WIDTH/2+160, HEIGHT/2+70 , 2, 1, 'center', 'top', 1, 30])
+    text([ 'KILLS TO\nNEXT LEVEL', WIDTH/2+160, HEIGHT/2+60 , 2, 3, 'center', 'top', 1, 30])
     text([ (targetKills-enemiesKilledThisLevel).toString(), WIDTH/2+160, HEIGHT/2+80, 8, 15, 'center', 'top', 5, 30,]);
     for(m=depth;-1+m--;){
       for(i=sides;i--;){
@@ -1236,8 +1236,13 @@
         outline(BUFFER, SCREEN, 6,9,6,3);
         renderTarget = SCREEN; renderSource = BUFFER; spr();
     }
-    text([ 'SCORE: ' + score.pad(10), WIDTH/2+50, 10, 2, 15, 'center', 'top', 1, 9, ]);
-    text([ 'LEVEL: ' + level, WIDTH/2-100, 10, 2, 15, 'center', 'top', 1, 9, ]);
+    renderTarget = BUFFER;
+    clear(0);
+    text([ '' + score, WIDTH/2, 10, 3, 15, 'center', 'top', 2, 9, ]);
+    renderTarget = SCREEN;
+    outline(BUFFER, SCREEN, 12,11,13,14);
+    text([ 'LEVEL ' + level, WIDTH/2-200, 10, 2, 15, 'left', 'top', 1, 9, ]);
+    text([ 'HI SCORE\n' + parseInt(highScores[0].score), WIDTH/2+200, 10, 2, 8, 'right', 'top', 1, 9, ]);
 
     if(t<=levelUpDisplayTimer){
       renderTarget = BUFFER; clear(0);
