@@ -11,10 +11,10 @@ html,body{
 #canvas {
   display: block;
   position: fixed;
-  top:0;
+  /*top:0;
   bottom: 0;
-  left: 400px;
-  margin:auto;
+  left: 0;*/
+  margin:0 auto;
   width: 1287px;
   height: 768px;
   border:1px solid #123;
@@ -26,7 +26,7 @@ html,body{
 
   /* cursor: none; */
 
-  margin: auto;
+
 
 }
 

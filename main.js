@@ -588,18 +588,18 @@
         break;
       case 7:
         speed=45;
-        powerupSpawnFreq=50;
-        targetKills=110
-        bumpSpawnFreq=100
-        ringSpawnFreq=9000
-        enemySpawnFreq=30
+        powerupSpawnFreq=100;
+        targetKills=20
+        bumpSpawnFreq=00
+        ringSpawnFreq=300
+        enemySpawnFreq=10000
         shotInterval=6
         //spokes=8
         break;
       case 8:
         speed=45;
         powerupSpawnFreq=50;
-        targetKills=5
+        targetKills=50;
         bumpSpawnFreq=100
         ringSpawnFreq=500
         enemySpawnFreq=100
