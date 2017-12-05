@@ -3,7 +3,7 @@
   var score = 0,
   level=1,
   highScores=[],bullets = [],splosions = [],
-  bubbles = [],enemies = [],bumps=[],powerups=[],coins=[],
+  bubbles = [],enemies = [],bumps=[],powerups=[],coins=[],LHS=[],
   spritesheet,gameOverPal,enemyPal,last = 0,sides,
   depth,LUT = [],w,h,v,s,
   OPZ=playerZ=5,playerTheta=0,
@@ -371,6 +371,7 @@
                 let xhttp = makeHttpObject()
                 xhttp.open("POST", "https://rotoblaster.tk/update.php", true);
                 xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                LHS=[{name:name,score:score}];
                 xhttp.send(`n=${name}&s=${score}&v=${highScores[highScores.length-1].t}`);
                 xhttp.onreadystatechange = function() {
                   if (xhttp.readyState == 4){
@@ -517,7 +518,6 @@
   function startup(){
 
     gunsActive = Array(99).fill(1);
-    spokes=3;
     enemiesKilledThisLevel=0
     levelUpDisplayTimer=t+100;
     gameInPlay=1;
@@ -538,7 +538,7 @@
       case 2:
         speed=27;
         //horz=1;
-        powerupSpawnFreq=1000;
+        powerupSpawnFreq=900;
         targetKills=50
         bumpSpawnFreq=510
         ringSpawnFreq=000
@@ -596,39 +596,36 @@
         shotInterval=6
         //spokes=8
         break;
-
-        case 8:
-          speed=45;
-          powerupSpawnFreq=50;
-          targetKills=5
-          bumpSpawnFreq=100
-          ringSpawnFreq=600
-          enemySpawnFreq=100
-          shotInterval=6
-          //spokes=8
-          break;
-
-        case 9:
-          speed=45;
-          powerupSpawnFreq=50;
-          targetKills=100
-          bumpSpawnFreq=100
-          ringSpawnFreq=500
-          enemySpawnFreq=08
-          shotInterval=6
-          //spokes=8
-          break;
-
-        case 10:
-          speed=50;
-          powerupSpawnFreq=50;
-          targetKills=100
-          bumpSpawnFreq=100
-          ringSpawnFreq=400
-          enemySpawnFreq=03
-          shotInterval=6
-          //spokes=8
-          break;
+      case 8:
+        speed=45;
+        powerupSpawnFreq=50;
+        targetKills=5
+        bumpSpawnFreq=100
+        ringSpawnFreq=500
+        enemySpawnFreq=100
+        shotInterval=6
+        //spokes=8
+        break;
+      case 9:
+        speed=45;
+        powerupSpawnFreq=50;
+        targetKills=100
+        bumpSpawnFreq=100
+        ringSpawnFreq=500
+        enemySpawnFreq=08
+        shotInterval=6
+        //spokes=8
+        break;
+      case 10:
+        speed=50;
+        powerupSpawnFreq=50;
+        targetKills=100
+        bumpSpawnFreq=100
+        ringSpawnFreq=400
+        enemySpawnFreq=03
+        shotInterval=6
+        //spokes=8
+        break;
     }
   }
 
@@ -660,7 +657,12 @@
         }else{
           var score = "...";
         }
-        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, 1, 4, 7, 3]);
+        if(LHS.length && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
+          color=12;
+        }else{
+          color=1;
+        }
+        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, color, 4, 7, 3]);
       }
       outline(BUFFER, SCREEN, 6,9,6,3);
       renderTarget = SCREEN;
@@ -672,7 +674,10 @@
         renderTarget = SCREEN;
         text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
     }
-    if(spacekey)startup()
+    if(spacekey){
+      level=1;
+      startup()
+    }
   }
 
 
