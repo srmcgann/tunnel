@@ -1,7 +1,7 @@
 (()=>{
 
   var score = 0,
-  1,
+  level=1,
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],bumps=[],powerups=[],coins=[],LHS=[],
   spritesheet,gameOverPal,enemyPal,last = 0,sides,
