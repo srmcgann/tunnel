@@ -529,7 +529,7 @@
         //horz=0;
         powerupSpawnFreq=1000;
         targetKills=20
-        bumpSpawnFreq=1010
+        bumpSpawnFreq=900
         ringSpawnFreq=0
         enemySpawnFreq=50
         shotInterval=8
@@ -543,7 +543,7 @@
         bumpSpawnFreq=510
         ringSpawnFreq=000
         enemySpawnFreq=30
-        shotInterval=8
+        shotInterval=7.5
         if(spokes < 3)spokes=3
         break;
       case 3:
@@ -553,7 +553,7 @@
         bumpSpawnFreq=310
         ringSpawnFreq=00
         enemySpawnFreq=30
-        shotInterval=8
+        shotInterval=7
         if(spokes < 3)spokes=3
         break;
       case 4:
@@ -563,7 +563,7 @@
         bumpSpawnFreq=170
         ringSpawnFreq=2000
         enemySpawnFreq=26
-        shotInterval=9
+        shotInterval=6.5
         //if(spokes < 4)spokes=4
         break;
       case 5:
@@ -571,9 +571,9 @@
         powerupSpawnFreq=500;
         targetKills=90
         bumpSpawnFreq=140
-        ringSpawnFreq=1510
+        ringSpawnFreq=1600
         enemySpawnFreq=23
-        shotInterval=8
+        shotInterval=6
         //if(spokes < 5)spokes=5
         break;
       case 6:
@@ -583,47 +583,57 @@
         bumpSpawnFreq=120
         ringSpawnFreq=1000
         enemySpawnFreq=18
-        shotInterval=7
+        shotInterval=5.5
         //if(spokes < 6)spokes=6
         break;
       case 7:
-        speed=45;
+        speed=50;
         powerupSpawnFreq=100;
         targetKills=20
         bumpSpawnFreq=00
         ringSpawnFreq=300
-        enemySpawnFreq=10000
-        shotInterval=6
+        enemySpawnFreq=1000
+        shotInterval=5
         //spokes=8
         break;
       case 8:
-        speed=45;
+        speed=55;
         powerupSpawnFreq=50;
         targetKills=50;
         bumpSpawnFreq=100
         ringSpawnFreq=500
         enemySpawnFreq=100
-        shotInterval=6
+        shotInterval=4.5
         //spokes=8
         break;
       case 9:
-        speed=45;
+        speed=60;
         powerupSpawnFreq=50;
         targetKills=100
         bumpSpawnFreq=100
         ringSpawnFreq=500
-        enemySpawnFreq=08
-        shotInterval=6
+        enemySpawnFreq=8
+        shotInterval=4
         //spokes=8
         break;
       case 10:
-        speed=50;
+        speed=65;
         powerupSpawnFreq=50;
-        targetKills=100
+        targetKills=500
         bumpSpawnFreq=100
         ringSpawnFreq=400
-        enemySpawnFreq=03
-        shotInterval=6
+        enemySpawnFreq=3
+        shotInterval=3.5
+        spokes=16
+        break;
+      default:
+        speed=80;
+        powerupSpawnFreq=10;
+        targetKills=10000
+        bumpSpawnFreq=100
+        ringSpawnFreq=400
+        enemySpawnFreq=1
+        shotInterval=2
         //spokes=8
         break;
     }
