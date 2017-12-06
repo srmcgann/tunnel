@@ -592,7 +592,7 @@
         targetKills=20
         bumpSpawnFreq=00
         ringSpawnFreq=300
-        enemySpawnFreq=1000
+        enemySpawnFreq=100
         shotInterval=5
         //spokes=8
         break;
@@ -685,6 +685,7 @@
         text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
     }
     if(spacekey){
+      spokes=3;
       level=1;
       startup()
     }
@@ -914,7 +915,7 @@
         bumps=[];
         powerups=[];
         score=0;
-        level=1 // comment this out to remain on current level after death
+        level=1
         startup()
       }
     }
