@@ -1,7 +1,7 @@
 (()=>{
 
   var score = 0,
-  level=1,
+  1,
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],bumps=[],powerups=[],coins=[],LHS=[],
   spritesheet,gameOverPal,enemyPal,last = 0,sides,
@@ -686,7 +686,7 @@
     }
     if(spacekey){
       spokes=3;
-      level=7;
+      level=1;
       startup()
     }
   }
