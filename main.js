@@ -588,17 +588,17 @@
         break;
       case 7:
         speed=50;
-        powerupSpawnFreq=100;
+        powerupSpawnFreq=200;
         targetKills=20
         bumpSpawnFreq=00
-        ringSpawnFreq=300
-        enemySpawnFreq=100
+        ringSpawnFreq=200
+        enemySpawnFreq=90
         shotInterval=5
         //spokes=8
         break;
       case 8:
         speed=55;
-        powerupSpawnFreq=50;
+        powerupSpawnFreq=100;
         targetKills=50;
         bumpSpawnFreq=100
         ringSpawnFreq=500
@@ -608,20 +608,20 @@
         break;
       case 9:
         speed=60;
-        powerupSpawnFreq=50;
+        powerupSpawnFreq=80;
         targetKills=100
         bumpSpawnFreq=100
-        ringSpawnFreq=500
+        ringSpawnFreq=100
         enemySpawnFreq=8
         shotInterval=4
         //spokes=8
         break;
       case 10:
         speed=65;
-        powerupSpawnFreq=50;
+        powerupSpawnFreq=80;
         targetKills=500
         bumpSpawnFreq=100
-        ringSpawnFreq=400
+        ringSpawnFreq=100
         enemySpawnFreq=3
         shotInterval=3.5
         spokes=16
@@ -686,7 +686,7 @@
     }
     if(spacekey){
       spokes=3;
-      level=1;
+      level=7;
       startup()
     }
   }
