@@ -646,7 +646,9 @@
     let now = new Date().getTime();
     dt = Math.min(1, (now - last) / 1000);
     t += dt;
+    let flip = false;
     if(firstRun){
+      //drawTitle()
       drawScores();
     }else{
       step(dt);
@@ -657,10 +659,33 @@
     requestAnimationFrame(loop);
   }
 
+drawTitle=()=>{
+  renderTarget = SCREEN; clear(30);
+  //renderTarget = BUFFER; clear(0);
+  renderSource = SPRITES;
+  //renderTarget = S
+  //pal[9]=0;
+  let i = 3000;
+  while(i--){
+    pset(Math.random()*WIDTH, Math.random()*HEIGHT, 28)
+    pset(Math.random()*WIDTH, Math.random()*HEIGHT, 29)
+  }
+  renderTarget = SPRITES;
+  fillRect(sprites.star.x, sprites.star.y, sprites.star.width, sprites.star.height, 0)
+  renderTarget = SCREEN;
+  spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8+S(t/20)*10);
+  text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/4%10, 4, 7, 3]);
+  if(spacekey){
+    spokes=3;
+    level=1;
+    startup()
+  }
+}
 
   drawScores=()=>{
     renderTarget = SCREEN; clear(0);
     renderTarget = BUFFER; clear(0);
+
     if(highScores.length){
       for(let i=0;i<10;i++){
         if(i<highScores.length-1){
