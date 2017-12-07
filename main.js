@@ -1055,11 +1055,13 @@
     //tunnel draw routine
     text([ 'KILLS TO\nNEXT LEVEL', WIDTH/2+160, HEIGHT/2+60 , 2, 3, 'center', 'top', 1, 30])
     text([ (targetKills-enemiesKilledThisLevel).toString(), WIDTH/2+160, HEIGHT/2+80, 8, 15, 'center', 'top', 5, 30,]);
-    for(m=depth;-1+m--;){
+    for(m=depth,bump=1;-1+m--;){
       for(i=sides;i--;){
         // q is the depth (Z) value and is also used to generate curvature of the tunnel
-        q=m-t/(1000/speed)*2%1
-
+        
+        q=m-t/1000*speed*2%1
+        var skip=0
+        if(bump!=1)skip=1
         bump = 1
         for(let k=0;k<bumps.length;k++){
           if(m==bumps[k].z|0 && i==bumps[k].theta|0){
@@ -1067,17 +1069,11 @@
             //bump=1.5
           }
         }
-        // O & P are the horizontal (X) curvature of the tunnel.
-        // they are the same except for P has (q+1), which is needed to plot
-        // length-wise line segments
         O=S(s*2*j*q+d)*3/FOV*300-f
         P=S(s*2*j*(q+1)+d)*3/FOV*300-f
-
-        // Q & R are the vertical (Y) curvature. again they are the same except for (q+1)
         Q=C(s*3*j*q+e)*.5/FOV*300-g
         R=C(s*3*j*(q+1)+e)*.5/FOV*300-g
 
-        // first point is a moveTo (L(1))
         X=S(p=v*i)*bump+O,Y=C(p)*bump+Q,Z=q;
         //modify the color by Z with LUT, first sprite in sheet
         lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 28);
@@ -1085,9 +1081,13 @@
         //cursorColor = LUT[lutcolor][55];
         moveTo3d(X,Y,Z);
         if(bump!=1)cursorColor = 5;
-        X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q, lineTo3d(X,Y,Z);
-        X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1, lineTo3d(X,Y,Z);
-        X=S(p-=v)*bump+P,Y=C(p)*bump+R,Z=q, lineTo3d(X,Y,Z);
+        if(skip){
+          q++
+        }else{
+          X=S(p+=v)*bump+O,Y=C(p)*bump+Q,Z=q, lineTo3d(X,Y,Z);
+          X=S(p)*bump+P,Y=C(p)*bump+R,Z=q+=1, lineTo3d(X,Y,Z);
+          X=S(p-=v)*bump+P,Y=C(p)*bump+R,Z=q, lineTo3d(X,Y,Z);
+        }
         if(bump!=1){
           cursorColor = 5;
           X=S(p=v*i)*bump+O,Y=C(p)*bump+Q,Z=q-=1; lineTo3d(X,Y,Z);
