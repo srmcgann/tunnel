@@ -476,6 +476,7 @@
       lightmap: { x:0, y:0, width: 63, height: 32 },
       purpleBall: { x:64, y:0, width: 30, height: 30},
       laserCannon: { x:96, y:0, width: 29, height: 30},
+      reticle: {x: 160, y: 0, width: 29, height: 30},
       coin: {x:126, y:0, width: 30, height: 30},
       star: {x:0, y:30, width: 65, height: 80},
       title: {x:13, y:32, width: 428-13, height: 256-32}
@@ -641,14 +642,16 @@
   }
 
 
+
   loop=(dt)=>{
     stats.begin();
     let now = new Date().getTime();
     dt = Math.min(1, (now - last) / 1000);
     t += dt;
-    let flip = false;
+    flip = true;
+    if(t%200<1){ flip = !flip; console.log(flip) };
     if(firstRun){
-      //drawTitle()
+      //flip ? drawTitle():drawScores();
       drawScores();
     }else{
       step(dt);
@@ -1041,7 +1044,7 @@ drawTitle=()=>{
     }
     for(let i=0;i<bubbles.length;++i){
       bubbles[i].x+=bubbles[i].vx/2+(Math.random()-.5)*.05
-      bubbles[i].y+=bubbles[i].vy/2+(Math.random()-.5)*.05//+=.003 //gravity pulls particles down like a firework
+      bubbles[i].y+=bubbles[i].vy/2+(Math.random()-.5)*.05
       bubbles[i].z-=bubbles[i].vz/2+(Math.random()-.5)*.05
       bubbles[i].s-=.15 // particle size diminishes
     }
@@ -1275,6 +1278,13 @@ drawTitle=()=>{
               p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*((i+.5)-spokes/2)*squeeze
               X+=S( p ),Y+=C(p), lineTo3d(X,Y,Z)
               rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
+              if(i == spokes-1){
+                Z-=.5;
+                X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g
+                p = playerTheta;
+                X+=S( p ),Y+=C(p);
+                rspr3d(X, Y, Z, sprites.reticle, 2, p)
+              }
             }
           }
         }
