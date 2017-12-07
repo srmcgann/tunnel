@@ -642,17 +642,17 @@
   }
 
 
-
+  flip = true;
   loop=(dt)=>{
     stats.begin();
     let now = new Date().getTime();
     dt = Math.min(1, (now - last) / 1000);
     t += dt;
-    flip = true;
-    if(t%200<1){ flip = !flip; console.log(flip) };
+    //flip = true;
+    flip^=(t%300==0?1:0)
     if(firstRun){
-      //flip ? drawTitle():drawScores();
-      drawScores();
+      flip ? drawTitle() : drawScores();
+      //drawScores();
     }else{
       step(dt);
       draw(dt);
