@@ -475,8 +475,8 @@
     sprites = {
       lightmap: { x:0, y:0, width: 63, height: 32 },
       purpleBall: { x:64, y:0, width: 30, height: 30},
-      laserCannon: { x:94, y:0, width: 29, height: 30},
-      coin: {x:124, y:0, width: 30, height: 30},
+      laserCannon: { x:96, y:0, width: 29, height: 30},
+      coin: {x:126, y:0, width: 30, height: 30},
       star: {x:0, y:30, width: 65, height: 80},
       title: {x:13, y:32, width: 428-13, height: 256-32}
     }
@@ -1059,7 +1059,7 @@
     for(m=depth,bump=1;-1+m--;){
       for(i=sides;i--;){
         // q is the depth (Z) value and is also used to generate curvature of the tunnel
-        
+
         q=m-t/1000*speed*2%1
         var skip=0
         if(bump!=1)skip=1
