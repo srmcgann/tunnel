@@ -663,7 +663,7 @@
     if(highScores.length){
       for(let i=0;i<10;i++){
         if(i<highScores.length-1){
-          var score = parseInt(highScores[i].score) + " " + highScores[i].name.toUpperCase() + '-'
+          var score = parseInt(highScores[i].score).pad(8," ") + " " + highScores[i].name.toUpperCase() + '-'
         }else{
           var score = "...";
         }
