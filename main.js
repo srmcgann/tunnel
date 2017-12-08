@@ -391,9 +391,6 @@
 
   function init() {
 
-    stats = new Stats();
-    document.body.appendChild( stats.dom );
-
     spritesheet = new Image();
     spritesheet.src = "assets/sprites.png";
     level=1;
@@ -443,24 +440,11 @@
     squeeze=1
     score=0
     lastSpokeScore=0;
-    spokePowerup=50000;
     spokeGet = false;
-    horz=0;
-    vert=0;
-
-    //setup fiddle knobs
-    panel= QuickSettings.create(10, 60, 'controls');
-
-    panel
-    .hideAllTitles()
-    .setKey("h")
-    //"name", lowerLimit, UpperLimit, defaultSetting, sliderIncrement
-    .addButton("reset", reset)
-    .addRange("horz wave", 0, 40, 2.5, .01)
-    .addRange("vert wave", 0, 40, 7.13, .01)
-    .addRange("spokeColor", 0, 63, 7, 1)
-    .addRange("FOV", 100, 1000, 380, .1)
-    panel.hide()
+    horz=2.5;
+    vert=7.13;
+    FOV=300;
+    spokeColor = 7;
 
     sprites = {
       lightmap: { x:0, y:0, width: 63, height: 32 },
@@ -516,43 +500,43 @@
     postedHighScore=0;
     switch(level){
       case 1:  // no bumps, just enemies
-        speed=25;
+        speed=30;
         //horz=0;
         powerupSpawnFreq=1000;
         targetKills=20
-        bumpSpawnFreq=900
-        ringSpawnFreq=0
-        enemySpawnFreq=50
+        bumpSpawnFreq=700
+        ringSpawnFreq=1000
+        enemySpawnFreq=40
         shotInterval=8
         spokes=3
         break;
       case 2:
-        speed=27;
+        speed=33;
         //horz=1;
         powerupSpawnFreq=900;
         targetKills=50
         bumpSpawnFreq=510
-        ringSpawnFreq=000
+        ringSpawnFreq=1000
         enemySpawnFreq=30
         shotInterval=7.5
         if(spokes < 3)spokes=3
         break;
       case 3:
-        speed=30;
+        speed=35;
         powerupSpawnFreq=1000;
         targetKills=70
         bumpSpawnFreq=310
-        ringSpawnFreq=00
+        ringSpawnFreq=1000
         enemySpawnFreq=30
         shotInterval=7
         if(spokes < 3)spokes=3
         break;
       case 4:
-        speed=33;
+        speed=37;
         powerupSpawnFreq=600;
         targetKills=80
         bumpSpawnFreq=170
-        ringSpawnFreq=2000
+        ringSpawnFreq=900
         enemySpawnFreq=26
         shotInterval=6.5
         //if(spokes < 4)spokes=4
@@ -562,7 +546,7 @@
         powerupSpawnFreq=500;
         targetKills=90
         bumpSpawnFreq=140
-        ringSpawnFreq=1600
+        ringSpawnFreq=900
         enemySpawnFreq=23
         shotInterval=6
         //if(spokes < 5)spokes=5
@@ -572,7 +556,7 @@
         powerupSpawnFreq=300;
         targetKills=100
         bumpSpawnFreq=120
-        ringSpawnFreq=1000
+        ringSpawnFreq=800
         enemySpawnFreq=18
         shotInterval=5.5
         //if(spokes < 6)spokes=6
@@ -623,7 +607,7 @@
         targetKills=10000
         bumpSpawnFreq=100
         ringSpawnFreq=400
-        enemySpawnFreq=1
+        enemySpawnFreq=6
         shotInterval=2
         //spokes=8
         break;
@@ -633,7 +617,6 @@
 
   flip = true;
   loop=(dt)=>{
-    stats.begin();
     let now = new Date().getTime();
     dt = Math.min(1, (now - last) / 1000);
     t += dt;
@@ -647,16 +630,13 @@
       draw(dt);
     }
     render(dt);
-    stats.end();
     requestAnimationFrame(loop);
   }
 
-drawTitle=()=>{
+  drawTitle=()=>{
   renderTarget = SCREEN; clear(30);
   renderTarget = BUFFER; clear(0);
   renderSource = SPRITES;
-  //renderTarget = S
-  //pal[9]=0;
 
   spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8);
   fillRect(sprites.title.x, sprites.title.y-16, sprites.star.width, sprites.star.height, 0) //erase star out of frame
@@ -678,50 +658,42 @@ drawTitle=()=>{
 }
 
   drawScores=()=>{
-    renderTarget = SCREEN; clear(0);
-    renderTarget = BUFFER; clear(0);
+  renderTarget = SCREEN; clear(0);
+  renderTarget = BUFFER; clear(0);
 
-    if(highScores.length){
-      for(let i=0;i<10;i++){
-        if(i<highScores.length-1){
-          var score = parseInt(highScores[i].score).pad(8," ") + " " + highScores[i].name.toUpperCase() + '-'
-        }else{
-          var score = "...";
-        }
-        if(LHS.length && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
-          color=12;
-        }else{
-          color=1;
-        }
-        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, color, 4, 7, 3]);
+  if(highScores.length){
+    for(let i=0;i<10;i++){
+      if(i<highScores.length-1){
+        var score = parseInt(highScores[i].score).pad(8," ") + " " + highScores[i].name.toUpperCase() + '-'
+      }else{
+        var score = "...";
       }
-      outline(BUFFER, SCREEN, 6,9,6,3);
+      if(LHS.length && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
+        color=12;
+      }else{
+        color=1;
+      }
+      text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, color, 4, 7, 3]);
+    }
+    outline(BUFFER, SCREEN, 6,9,6,3);
+    renderTarget = SCREEN;
+    renderSource = BUFFER;
+    spr();
+    text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
+  }else{
+    clear(0);
       renderTarget = SCREEN;
-      renderSource = BUFFER;
-      spr();
-      text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
-    }else{
-      clear(0);
-        renderTarget = SCREEN;
-        text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
-    }
-    if(spacekey){
-      spokes=3;
-      level=1;
-      startup()
-    }
+      text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
   }
+  if(spacekey){
+    spokes=3;
+    level=1;
+    startup()
+  }
+}
 
 
   step=(dt)=>{
-
-    //if(gameInPlay && t%1000>1)score+=spokes
-
-    //hook up control panel vars
-    horz = panel.getValue('horz wave');
-    vert = panel.getValue('vert wave');
-    spokeColor = panel.getValue('spokeColor');
-    FOV = panel.getValue('FOV');
 
     //rotate palette index for flashing powerups
     if(t%4<1)enemyPal[9] = 8 + t%7|0
@@ -744,8 +716,8 @@ drawTitle=()=>{
     if(t%ringSpawnFreq<1)spawnBump(16);
 
     // spawn coins
-    if(t%100<1)spawnCoin();
-    if(t%1000<1)spawnCoin(16);
+    if(t%70<1)spawnCoin();
+    if(t%735<1)spawnCoin(16);
 
     // f & g are offsets to recenter the mouth of the tunnel
     // they coincide with the formulas below and should not be changed independently
@@ -1052,21 +1024,6 @@ drawTitle=()=>{
   }
 
 
-  levelUp=()=>{
-    sound = new Audio("levelup.ogg")
-    sound.volume=.5
-    sound.play()
-    level++;
-    levelUpDisplayTimer=t+100;
-    startup()
-  }
-  levelDown=()=>{
-    level--;
-    levelUpDisplayTimer=t+100;
-    startup()
-  }
-
-
   draw=(dt)=>{
 
     clear(0);
@@ -1319,6 +1276,15 @@ drawTitle=()=>{
       renderTarget = SCREEN; renderSource = BUFFER; spr();
     }
   }//end draw()
+  
+  levelUp=()=>{
+    sound = new Audio("levelup.ogg")
+    sound.volume=.5
+    sound.play()
+    level++;
+    levelUpDisplayTimer=t+100;
+    startup()
+  }
 
   //---------Spawners---------------------
   spawnSplosion=(x,y,z,a=99)=>{
@@ -1483,8 +1449,6 @@ drawTitle=()=>{
       case 67:ckey=1;break;
       case 82:rkey=1;break;
       case 17:ctrlkey=1;break;
-      case 69:ekey=1;break;
-      case 87:wkey=1;break;
     }
   }
 
@@ -1499,8 +1463,7 @@ drawTitle=()=>{
       case 67:ckey=0;break;
       case 82:rkey=0;break;
       case 17:ctrlkey=0;break;
-      case 69:ekey=0;levelUp();break;
-      case 87:wkey=0;levelDown();break;
+
 
     }
   }
