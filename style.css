@@ -1,9 +1,9 @@
 @font-face {
   font-family: '04b08';
-    src:  url('/assets/font/04b08.ttf.woff') format('woff'),
-    url('/assets/font/04b08.ttf.svg#04b08') format('svg'),
-    url('/assets/font/04b08.ttf.eot'),
-    url('/assets/font/04b08.eot?#iefix') format('embedded-opentype');
+    src:  url('assets/font/04b08.ttf.woff') format('woff'),
+    url('assets/font/04b08.ttf.svg#04b08') format('svg'),
+    url('assets/font/04b08.ttf.eot'),
+    url('assets/font/04b08.eot?#iefix') format('embedded-opentype');
     font-weight: normal;
     font-style: normal;
   }
