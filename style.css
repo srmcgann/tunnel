@@ -11,10 +11,8 @@ html,body{
 #canvas {
   display: block;
   position: fixed;
-  top:0;
-  bottom: 0;
-  right:0;
-  width: 82%;
+
+  width: 96%;
   height: 96vh;
   margin:1%;
   border:1px solid #123;
@@ -23,23 +21,23 @@ html,body{
   image-rendering: pixelated;
 }
 
-:-webkit-full-screen  {
-  width: 2140px;
-  height: 1280px;
-}
+/*:-webkit-full-screen  {*/
+/*  width: 2140px;*/
+/*  height: 1280px;*/
+/*}*/
 
-#instructions{
-  position:absolute;
-  font-family:courier,arial,tahoma;
-  top:0;
-  margin-top:5vh;
-  width:14vw;
-  color:#aec;
-  font-size:1.25vw;
-  margin-left:1vw;
-  text-align: left;
-  border-radius:10px;
-}
+/*#instructions{*/
+/*  position:absolute;*/
+/*  font-family:courier,arial,tahoma;*/
+/*  top:0;*/
+/*  margin-top:5vh;*/
+/*  width:14vw;*/
+/*  color:#aec;*/
+/*  font-size:1.25vw;*/
+/*  margin-left:1vw;*/
+/*  text-align: left;*/
+/*  border-radius:10px;*/
+/*}*/
 
 .caption{
   padding-left:1vw;

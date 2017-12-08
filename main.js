@@ -676,8 +676,9 @@ drawTitle=()=>{
   renderTarget = SPRITES;
   fillRect(sprites.star.x, sprites.star.y, sprites.star.width, sprites.star.height, 0)
   renderTarget = SCREEN;
-  spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8+S(t/20)*10);
-  text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/4%10, 4, 7, 3]);
+  spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8);
+  text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
+  text([ 'LEFT CTRL OR X TO SHOOT\nARROWS TO ROTATE\nUP ARROW TO SQUEEZE GUNS', WIDTH/2+110, HEIGHT/2+65, 1, 3, 'center', 'top', 1, 22 ]);
   if(spacekey){
     spokes=3;
     level=1;
@@ -707,7 +708,7 @@ drawTitle=()=>{
       renderTarget = SCREEN;
       renderSource = BUFFER;
       spr();
-      text([ 'HIT SPACE TO START', 10, HEIGHT/2-100+200, 8, 15, 'left', 'top', 3, t/4%10, 4, 7, 3]);
+      text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
     }else{
       clear(0);
         renderTarget = SCREEN;
