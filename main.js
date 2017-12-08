@@ -408,15 +408,6 @@
     score=0;
     getHighScores();
 
-    gameoverPal = [
-       0,1,2,3,4,5,6,7,8,9,
-      17,17,17,17,17,17,17,17,17,17,
-      17,17,17,17,17,17,17,17,17,17,
-      17,17,17,17,17,17,17,17,17,17,
-      17,17,17,17,17,17,17,17,17,17,
-      17,17,17,17,17,17,17,17,17,17,
-      17,17,17,17 ]
-
     enemyPal = palDefault.slice();
 
 
@@ -468,7 +459,6 @@
     .addRange("horz wave", 0, 40, 2.5, .01)
     .addRange("vert wave", 0, 40, 7.13, .01)
     .addRange("spokeColor", 0, 63, 7, 1)
-    //.addRange("Spokes", 1, 30, 3, 1)
     .addRange("FOV", 100, 1000, 380, .1)
     panel.hide()
 
@@ -476,7 +466,6 @@
       lightmap: { x:0, y:0, width: 63, height: 32 },
       purpleBall: { x:64, y:0, width: 30, height: 30},
       laserCannon: { x:96, y:0, width: 29, height: 30},
-      reticle: {x: 160, y: 0, width: 29, height: 30},
       coin: {x:126, y:0, width: 30, height: 30},
       star: {x:0, y:30, width: 65, height: 80},
       title: {x:13, y:32, width: 428-13, height: 256-32}
@@ -1080,11 +1069,11 @@ drawTitle=()=>{
 
     clear(0);
 
-    //fcir(-1,1,5,50,22);
-    //fillCircle(50,50,10,22)
     //tunnel draw routine
-    text([ 'KILLS TO\nNEXT LEVEL', WIDTH/2+160, HEIGHT/2+60 , 2, 3, 'center', 'top', 1, 30])
-    text([ (targetKills-enemiesKilledThisLevel).toString(), WIDTH/2+160, HEIGHT/2+80, 8, 15, 'center', 'top', 5, 30,]);
+    if(gameInPlay){
+      text([ 'KILLS TO\nNEXT LEVEL', WIDTH/2+160, HEIGHT/2+60 , 2, 3, 'center', 'top', 1, 30])
+      text([ (targetKills-enemiesKilledThisLevel).toString(), WIDTH/2+160, HEIGHT/2+80, 8, 15, 'center', 'top', 5, 30,]);
+    }
     for(m=depth,bump=1;-1+m--;){
       for(i=sides;i--;){
         // q is the depth (Z) value and is also used to generate curvature of the tunnel
@@ -1280,11 +1269,23 @@ drawTitle=()=>{
               X+=S( p ),Y+=C(p), lineTo3d(X,Y,Z)
               rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
               if(i == spokes-1){
-                Z-=.5;
+                //Z-=.5;
                 X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g
                 p = playerTheta;
-                X+=S( p ),Y+=C(p);
-                rspr3d(X, Y, Z, sprites.reticle, 2, p)
+                X+=S( p )*1.03,Y+=C(p)*1.03;
+                cursorColor=12
+                for(let k=0;k<4;k++){
+                  let V=Math.PI*2/3*k+p+Math.PI
+                  let s=.15+S(t/8)*.05
+                  X2=X+S(V)*s
+                  Y2=Y+C(V)*s
+                  if(k){
+                    lineTo3d(X2,Y2,Z)
+                  }else{
+                    moveTo3d(X2,Y2,Z)
+                  }
+                }
+                //rspr3d(X, Y, Z, sprites.reticle, 2, p)
               }
             }
           }
