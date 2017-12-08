@@ -1,3 +1,13 @@
+@font-face {
+  font-family: '04b08';
+    src:  url('/assets/font/04b08.ttf.woff') format('woff'),
+    url('/assets/font/04b08.ttf.svg#04b08') format('svg'),
+    url('/assets/font/04b08.ttf.eot'),
+    url('/assets/font/04b08.eot?#iefix') format('embedded-opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
 html,body{
 	overflow:hidden;
   height:100vh;
@@ -10,11 +20,12 @@ html,body{
 
 #canvas {
   display: block;
-  position: fixed;
+  /*position: fixed;*/
 
-  width: 96%;
-  height: 96vh;
-  margin:1%;
+  width: 157.15vh;
+  height: 94%;
+  margin:	0 auto;
+	padding: 10px
   border:1px solid #123;
   border-radius:25px;
   image-rendering: optimizeSpeed;
@@ -43,8 +54,16 @@ html,body{
   padding-left:1vw;
 }
 
+.footer{
+	width:100%;
+	margin: 0 auto;
+}
 .label{
   color:#888;
+	font-size:1.5vw;
+	font-family: '04b08';
+	text-align: center;
+	padding: 10px;
 }
 
 #logo{
@@ -58,5 +77,4 @@ hr{
 a{
   text-decoration:none;
   color:#68f;
-  font-size:1.25vw;
 }
