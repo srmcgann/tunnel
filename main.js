@@ -653,19 +653,21 @@
 
 drawTitle=()=>{
   renderTarget = SCREEN; clear(30);
-  //renderTarget = BUFFER; clear(0);
+  renderTarget = BUFFER; clear(0);
   renderSource = SPRITES;
   //renderTarget = S
   //pal[9]=0;
+
+  spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8);
+  fillRect(sprites.title.x, sprites.title.y-16, sprites.star.width, sprites.star.height, 0) //erase star out of frame
+  renderSource = BUFFER;
+  renderTarget = SCREEN;
   let i = 3000;
   while(i--){
     pset(Math.random()*WIDTH, Math.random()*HEIGHT, 28)
     pset(Math.random()*WIDTH, Math.random()*HEIGHT, 29)
   }
-  renderTarget = SPRITES;
-  fillRect(sprites.star.x, sprites.star.y, sprites.star.width, sprites.star.height, 0)
-  renderTarget = SCREEN;
-  spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8);
+  spr();
   text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
   text([ 'LEFT CTRL OR X TO SHOOT\nARROWS TO ROTATE\nUP ARROW TO SQUEEZE GUNS', WIDTH/2+110, HEIGHT/2+65, 1, 3, 'center', 'top', 1, 22 ]);
   if(spacekey){
