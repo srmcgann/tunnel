@@ -1372,10 +1372,10 @@ drawScores=()=>{
     sound.volume=.8;
     sound.play()
     H=0;
-    for(let i=0;i<spokes;++i){
+    for(let i=0;i<spokes+1;++i){
       if(gunsActive[i])H++;
     }
-    spokes=H+1;
+    spokes=H;
     gunsActive[gunsActive.indexOf(0)] = 1;
     lastSpokeScore = score;
     spokeGet = 1;
