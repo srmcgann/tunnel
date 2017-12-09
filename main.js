@@ -3,13 +3,13 @@
   var score = 0,
   level=1,
   highScores=[],bullets = [],splosions = [],
-  bubbles = [],enemies = [],bumps=[],powerups=[],coins=[],LHS=[],
+  bubbles = [],enemies = [],gunsActive=[],retractSpoke=[],bumps=[],powerups=[],coins=[],LHS=[],
   spritesheet,gameOverPal,enemyPal,last = 0,sides,
   depth,LUT = [],w,h,v,s,
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
   bumpsAmount = 1,bumpVar=0,powerUpGet = false,squeeze=1,score=0,
-  lastSpokeScore=0,spokePowerup=50000,spokeGet = false,horz=0,vert=0;
+  lastSpokeScore=0,spokePowerup=50000,spokeLose=spokeGet=horz=vert=0,retractSpeed=40;
 
   function makeHttpObject() {
     try {return new XMLHttpRequest();}
@@ -440,7 +440,7 @@
     squeeze=1
     score=0
     lastSpokeScore=0;
-    spokeGet = false;
+    spokeLose=spokeGet=0;
     horz=2.5;
     vert=7.13;
     FOV=300;
@@ -493,6 +493,7 @@
   function startup(){
 
     gunsActive = Array(99).fill(1);
+    retractSpoke = Array(99).fill(0);
     enemiesKilledThisLevel=0
     levelUpDisplayTimer=t+100;
     gameInPlay=1;
@@ -502,7 +503,7 @@
       case 1:  // no bumps, just enemies
         speed=30;
         //horz=0;
-        powerupSpawnFreq=1000;
+        powerupSpawnFreq=900;
         targetKills=20
         bumpSpawnFreq=700
         ringSpawnFreq=1000
@@ -526,7 +527,7 @@
         powerupSpawnFreq=1000;
         targetKills=70
         bumpSpawnFreq=310
-        ringSpawnFreq=1000
+        ringSpawnFreq=1100
         enemySpawnFreq=30
         shotInterval=7
         if(spokes < 3)spokes=3
@@ -585,7 +586,7 @@
         speed=60;
         powerupSpawnFreq=80;
         targetKills=100
-        bumpSpawnFreq=100
+        bumpSpawnFreq=120
         ringSpawnFreq=100
         enemySpawnFreq=8
         shotInterval=4
@@ -595,7 +596,7 @@
         speed=65;
         powerupSpawnFreq=80;
         targetKills=500
-        bumpSpawnFreq=100
+        bumpSpawnFreq=80
         ringSpawnFreq=100
         enemySpawnFreq=3
         shotInterval=3.5
@@ -657,7 +658,7 @@
   }
 }
 
-  drawScores=()=>{
+drawScores=()=>{
   renderTarget = SCREEN; clear(0);
   renderTarget = BUFFER; clear(0);
 
@@ -749,6 +750,10 @@
       }
     }
 
+    if(spokeLose > 0){
+      spokeLose = (spokeLose - .05).clamp(0,1);
+    }
+
 
     enemies.sort(function(a,b){return b.z - a.z});
     enemies.forEach(function(e, eIndex, eArr){
@@ -759,7 +764,7 @@
       //check for collision with player
       if(Math.abs(e.z - playerZ + 1) < 1){
         for(let i = 0; i < spokes; ++i){
-          if(gunsActive[i]){
+          if(gunsActive[i]&&!retractSpoke[i]){
             let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
             while(p>Math.PI)p-=Math.PI*2
             while(p<-Math.PI)p+=Math.PI*2
@@ -769,9 +774,10 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSplosion(X,Y,playerZ,150);
-                spokes--;
-                //gunsActive[i]=0;
-                playerTheta=e.theta+Math.PI
+                retractSpoke[i]=1;
+                spokeLose = 1;
+                //spokes--;
+                //playerTheta=e.theta+Math.PI
                 eArr.splice(eIndex, 1);
                 break;
               }
@@ -874,7 +880,7 @@
       //check for collision with player
       if(Math.abs(e.z - playerZ)<.2){
         for(let i = 0; i < spokes; ++i){
-          if(gunsActive[i]){
+          if(gunsActive[i] && !retractSpoke[i]){
             //check for squeeze to prevent killing all at once from sideways movement
             if(squeeze > .98 || squeeze < .02){
               p=(playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze)
@@ -886,9 +892,9 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSplosion(X,Y,playerZ,150);
-                //gunsActive[i]=0;
-                spokes--;
-                playerTheta=e.theta+Math.PI
+                retractSpoke[i]=1;
+                //spokes--;
+                //playerTheta=e.theta+Math.PI
                 break;
               }
             }
@@ -920,7 +926,7 @@
       sound.play();
       shotTimer=t+shotInterval
       for(i=spokes;i--;){
-        if(gunsActive[i]){
+        if(gunsActive[i] && !retractSpoke[i]){
           let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
           bullets.push({
             z:playerZ,
@@ -1027,7 +1033,6 @@
   draw=(dt)=>{
 
     clear(0);
-
     //tunnel draw routine
     if(gameInPlay){
       text([ 'KILLS TO\nNEXT LEVEL', WIDTH/2+160, HEIGHT/2+60 , 2, 3, 'center', 'top', 1, 30])
@@ -1221,31 +1226,38 @@
 
           moveTo3d(X,Y,Z)
           for(let i = 0; i < spokes; ++i){
+            if(i == spokes-1){
+              X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g
+              p = playerTheta;
+              X+=S( p )*1.03,Y+=C(p)*1.03;
+              cursorColor=12
+              for(let k=0;k<4;k++){
+                let V=Math.PI*2/3*k+p+Math.PI
+                let s=.15+S(t/8)*.05
+                X2=X+S(V)*s
+                Y2=Y+C(V)*s
+                if(k){
+                  lineTo3d(X2,Y2,Z)
+                }else{
+                  moveTo3d(X2,Y2,Z)
+                }
+              }
+            }
             if(gunsActive[i]){
+              V=1-retractSpoke[i]/retractSpeed;
+              if(retractSpoke[i]){
+                if(retractSpoke[i]<retractSpeed){
+                  retractSpoke[i]++
+                }else{
+                  loseSpoke();
+                  retractSpoke[i]=0
+                }
+              }
               cursorColor = (i-spokes/2+.5)|0?spokeColor:22;
               X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g,moveTo3d(X,Y,Z)
               p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/(spokes-spokeGet)*((i+.5)-spokes/2)*squeeze
-              X+=S( p ),Y+=C(p), lineTo3d(X,Y,Z)
+              X+=S( p )*V,Y+=C(p)*V, lineTo3d(X,Y,Z)
               rspr3d(X, Y, Z, sprites.laserCannon, 2, p)
-              if(i == spokes-1){
-                //Z-=.5;
-                X=S(s*2*j*Z+d)*3/FOV*300-f,Y=C(s*3*j*Z+e)*.5/FOV*300-g
-                p = playerTheta;
-                X+=S( p )*1.03,Y+=C(p)*1.03;
-                cursorColor=12
-                for(let k=0;k<4;k++){
-                  let V=Math.PI*2/3*k+p+Math.PI
-                  let s=.15+S(t/8)*.05
-                  X2=X+S(V)*s
-                  Y2=Y+C(V)*s
-                  if(k){
-                    lineTo3d(X2,Y2,Z)
-                  }else{
-                    moveTo3d(X2,Y2,Z)
-                  }
-                }
-                //rspr3d(X, Y, Z, sprites.reticle, 2, p)
-              }
             }
           }
         }
@@ -1352,11 +1364,18 @@
       size: 15
     })
   }
+  loseSpoke=()=>{
+    gunsActive[retractSpoke.indexOf(retractSpeed)]=0;
+  }
   spawnSpoke=()=>{
     sound=new Audio("powerup.ogg");
     sound.volume=.8;
     sound.play()
-    spokes+=gunsActive.indexOf(0)<spokes&&gunsActive.indexOf(0)!=-1?0:1;
+    H=0;
+    for(let i=0;i<spokes;++i){
+      if(gunsActive[i])H++;
+    }
+    spokes=H+1;
     gunsActive[gunsActive.indexOf(0)] = 1;
     lastSpokeScore = score;
     spokeGet = 1;
