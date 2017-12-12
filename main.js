@@ -4,7 +4,7 @@
   level=1,
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],gunsActive=[],retractSpoke=[],bumps=[],powerups=[],coins=[],LHS=[],
-  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false,
+  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false, paused = false,
   depth,LUT = [],w,h,v,s,
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
@@ -408,7 +408,7 @@
     init
     );
 
-  bufferLoader.load();
+    bufferLoader.load();
 
   }
 
@@ -662,15 +662,21 @@
     let now = new Date().getTime();
     dt = Math.min(1, (now - last) / 1000);
     t += dt;
-    //flip = true;
-    flip^=(t%300==0?1:0)
-    if(firstRun){
-      flip ? drawTitle() : drawScores();
-      //drawScores();
+    if(paused){
+      renderTarget = SCREEN;
+      clear(30);
+      text([ 'PAUSED', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
     }else{
-      step(dt);
-      draw(dt);
+      flip^=(t%300==0?1:0)
+      if(firstRun){
+        flip ? drawTitle() : drawScores();
+      }else{
+        step(dt);
+        draw(dt);
+      }
+
     }
+
     render(dt);
     requestAnimationFrame(loop);
   }
@@ -1553,9 +1559,16 @@ drawScores=()=>{
       case 82:rkey=0;break;
       case 17:ctrlkey=0;break;
       case 77:mkey=0;soundToggle();break;
-      case 80:pkey=0;break;
+      case 80:pkey=0;paused=!paused;soundToggle();break;
     }
   }
+
+  window.addEventListener('blur', function (event) {
+    paused = true;
+  }, false);
+  window.addEventListener('focus', function (event) {
+    paused = false;
+  }, false);
 
   load();
 })();
