@@ -682,63 +682,63 @@
   }
 
   drawTitle=()=>{
-  renderTarget = SCREEN; clear(30);
-  renderTarget = BUFFER; clear(0);
-  renderSource = SPRITES;
+    renderTarget = SCREEN; clear(30);
+    renderTarget = BUFFER; clear(0);
+    renderSource = SPRITES;
 
-  spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8);
-  fillRect(sprites.title.x, sprites.title.y-16, sprites.star.width, sprites.star.height, 0) //erase star out of frame
-  renderSource = BUFFER;
-  renderTarget = SCREEN;
-  let i = 3000;
-  while(i--){
-    pset(Math.random()*WIDTH, Math.random()*HEIGHT, 28)
-    pset(Math.random()*WIDTH, Math.random()*HEIGHT, 29)
-  }
-  spr();
-  text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
-  text([ 'LEFT CTRL OR X TO SHOOT\nARROWS TO ROTATE\nUP ARROW TO SQUEEZE GUNS', WIDTH/2+110, HEIGHT/2+65, 1, 3, 'center', 'top', 1, 22 ]);
-  if(spacekey){
-    spokes=3;
-    level=1;
-    startup()
-  }
-}
-
-drawScores=()=>{
-  renderTarget = SCREEN; clear(0);
-  renderTarget = BUFFER; clear(0);
-
-  if(highScores.length){
-    for(let i=0;i<10;i++){
-      if(i<highScores.length-1){
-        var score = parseInt(highScores[i].score).pad(8," ") + " " + highScores[i].name.toUpperCase() + '-'
-      }else{
-        var score = "...";
-      }
-      if(LHS.length && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
-        color=12;
-      }else{
-        color=1;
-      }
-      text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, color, 4, 7, 3]);
-    }
-    outline(BUFFER, SCREEN, 6,9,6,3);
-    renderTarget = SCREEN;
+    spr(sprites.title.x, sprites.title.y, sprites.title.width, sprites.title.height, 16, 8);
+    fillRect(sprites.title.x, sprites.title.y-16, sprites.star.width, sprites.star.height, 0) //erase star out of frame
     renderSource = BUFFER;
+    renderTarget = SCREEN;
+    let i = 3000;
+    while(i--){
+      pset(Math.random()*WIDTH, Math.random()*HEIGHT, 28)
+      pset(Math.random()*WIDTH, Math.random()*HEIGHT, 29)
+    }
     spr();
     text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
-  }else{
-    clear(0);
+    text([ 'LEFT CTRL OR X TO SHOOT\nARROWS TO ROTATE\nUP ARROW TO SQUEEZE GUNS', WIDTH/2+110, HEIGHT/2+65, 1, 3, 'center', 'top', 1, 22 ]);
+    if(spacekey){
+      spokes=3;
+      level=1;
+      startup()
+    }
+  }
+
+  drawScores=()=>{
+    renderTarget = SCREEN; clear(0);
+    renderTarget = BUFFER; clear(0);
+
+    if(highScores.length){
+      for(let i=0;i<10;i++){
+        if(i<highScores.length-1){
+          var score = parseInt(highScores[i].score).pad(8," ") + " " + highScores[i].name.toUpperCase() + '-'
+        }else{
+          var score = "...";
+        }
+        if(LHS.length && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
+          color=12;
+        }else{
+          color=1;
+        }
+        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, color, 4, 7, 3]);
+      }
+      outline(BUFFER, SCREEN, 6,9,6,3);
       renderTarget = SCREEN;
-      text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
+      renderSource = BUFFER;
+      spr();
+      text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
+    }else{
+      clear(0);
+        renderTarget = SCREEN;
+        text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
+    }
+    if(spacekey){
+      spokes=3;
+      level=1;
+      startup()
+    }
   }
-  if(spacekey){
-    spokes=3;
-    level=1;
-    startup()
-  }
-}
 
 
   step=(dt)=>{
@@ -1073,11 +1073,27 @@ drawScores=()=>{
 
     //handleBumps
     adjust=0
-    if(bumpVar>t/(1000/speed)*2%1)adjust=1 //
+    if(bumpVar>t/(1000/speed)*2%1)adjust=1
     bumpVar=t/(1000/speed)*2%1
     for(let i=0;i<bumps.length;i++)bumps[i].z-=adjust
     for(let i=0;i<bumps.length;i++){
       if(bumps[i].z<0)bumps.splice(i,1);
+    }
+    
+    
+    // move reticle to last spoke, if there's only 1 remaining...
+    let count=tTheta=0;
+    for(let i=spokes;i--;){
+      if(gunsActive[i]){
+        count++;
+        tTheta=playerTheta+Math.PI*2/(spokes-spokeGet)*((i+.5)-spokes/2)*squeeze
+      }
+    }
+    if(count==1){
+      playerTheta=tTheta;
+      spokes=1
+      for(let i=spokes;i--;)gunsActive[i]=0
+      gunsActive[0]=1
     }
   }
 
