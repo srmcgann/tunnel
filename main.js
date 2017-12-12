@@ -4,7 +4,7 @@
   level=1,
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],gunsActive=[],retractSpoke=[],bumps=[],powerups=[],coins=[],LHS=[],
-  spritesheet,gameOverPal,enemyPal,last = 0,sides,
+  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false,
   depth,LUT = [],w,h,v,s,
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
@@ -388,8 +388,46 @@
     };
   }
 
+  load=()=>{
 
-  function init() {
+    //loading screen text/graphic here?
+    bufferLoader = new BufferLoader(
+    audioCtx,
+    [
+      'cantelope.mp3',
+      'metal1.ogg',
+      'metal2.ogg',
+      'metal3.ogg',
+      'metal4.ogg',
+      'metal5.ogg',
+      'pew.ogg',
+      'powerup.ogg',
+      'splode.ogg',
+      'coin.ogg'
+    ],
+    init
+    );
+
+  bufferLoader.load();
+
+  }
+
+  nameAudioBuffers=(list)=>{
+    snd.song = list[0]
+    snd.metal1 = list[1]
+    snd.metal2 = list[2]
+    snd.metal3 = list[3]
+    snd.metal4 = list[4]
+    snd.metal5 = list[5]
+    snd.pew = list[6]
+    snd.powerup = list[7]
+    snd.splode = list[8]
+    snd.coin = list[9]
+  }
+
+  function init(audioBuffers) {
+
+    nameAudioBuffers(audioBuffers);
 
     spritesheet = new Image();
     spritesheet.src = "assets/sprites.png";
@@ -480,10 +518,12 @@
       for(let i = 0; i < 30; ++i){
         LUT.push(ram.slice(SPRITES+WIDTH*i, SPRITES+WIDTH*i+64))
       }
-      soundtrack=new Audio("cantelope.mp3");
-      soundtrack.loop=1;
-      soundtrack.volume=.3;
-      soundtrack.play();
+      //playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop = false)
+      playSound(snd.song, 1, 0, .3, 1);
+      // soundtrack=new Audio("cantelope.mp3");
+      // soundtrack.loop=1;
+      // soundtrack.volume=.3;
+      // soundtrack.play();
       gameInPlay=0;
       firstRun=1;
       loop();
@@ -507,6 +547,7 @@
         targetKills=20
         bumpSpawnFreq=700
         ringSpawnFreq=1000
+        canalSpawnFreq=200
         enemySpawnFreq=40
         shotInterval=8
         spokes=3
@@ -716,6 +757,9 @@ drawScores=()=>{
     if(t%bumpSpawnFreq<1)spawnBump();
     if(t%ringSpawnFreq<1)spawnBump(16);
 
+  //  if(t%canalSpawnFreq<1)spawnCoinCanal(4);
+
+
     // spawn coins
     if(t%70<1)spawnCoin();
     if(t%735<1)spawnCoin(16);
@@ -846,9 +890,10 @@ drawScores=()=>{
               X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
               X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
               spawnBubble(X,Y,playerZ,10);
-              sound = new Audio("coin.ogg?2");
-              sound.volume=.2
-              sound.play();
+              playSound(snd.coin, 1, 0, .2, false);
+              // sound = new Audio("coin.ogg?2");
+              // sound.volume=.2
+              // sound.play();
               score+=50*spokes;
               eArr.splice(eIndex, 1);
               break;
@@ -921,9 +966,10 @@ drawScores=()=>{
 
     // shoot guns
     if((xkey || ctrlkey) && shotTimer<t && gameInPlay){
-      sound=new Audio("pew.ogg");
-      sound.volume=.1;
-      sound.play();
+      playSound(snd.pew, 1, 0, .1, false);
+      // sound=new Audio("pew.ogg");
+      // sound.volume=.1;
+      // sound.play();
       shotTimer=t+shotInterval
       for(i=spokes;i--;){
         if(gunsActive[i] && !retractSpoke[i]){
@@ -1288,11 +1334,12 @@ drawScores=()=>{
       renderTarget = SCREEN; renderSource = BUFFER; spr();
     }
   }//end draw()
-  
+
   levelUp=()=>{
-    sound = new Audio("levelup.ogg")
-    sound.volume=.5
-    sound.play()
+    playSound(snd.levelUp, 1, 0, .5, 0);
+    // sound = new Audio("levelup.ogg")
+    // sound.volume=.5
+    // sound.play()
     level++;
     levelUpDisplayTimer=t+100;
     startup()
@@ -1302,17 +1349,22 @@ drawScores=()=>{
   spawnSplosion=(x,y,z,a=99)=>{
 
     if(a==99){ // enemy died
-      sound=new Audio("splode.ogg");
-      sound.volume=.5/(1+z/8);
-      sound.play();
+      playSound(snd.splode, 1, 0, .5/(1+z/8), 0);
+      // sound=new Audio("splode.ogg");
+      // sound.volume=.5/(1+z/8);
+      // sound.play();
     }
     if(a==150){ // player lost gun
-      sound=new Audio("splode.ogg");
-      sound.volume=.2;
-      sound.play();
-      sound=new Audio(`metal${1+Math.random()*5|0}.ogg`);
-      sound.volume=.175;
-      sound.play();
+      playSound(snd.splode, 1, 0, .2, 0);
+      // sound=new Audio("splode.ogg");
+      // sound.volume=.2;
+      // sound.play();
+      playSound(snd[ 'metal' + (1+Math.random()*5|0) ], 1, 0, .175, 0);
+      //playSound(snd[ 'metal' + 1+Math.random()*5|0 ], 1, 0, .175, 0);
+
+      // sound=new Audio(`metal${1+Math.random()*5|0}.ogg`);
+      // sound.volume=.175;
+      // sound.play();
     }
     for(let i=a;i--;){
       let splosionVelocity=Math.random()*.13
@@ -1343,6 +1395,15 @@ drawScores=()=>{
       //bumps.push({z:depth, theta:15, b:.2+Math.random()*.2});
     }
   }
+  spawnCoinCanal=(d=1)=>{
+    let pos = Math.random()*(sides-2)+1|0;
+    let coinPos = pos.map(0, 16, -Math.PI, Math.PI) + Math.PI + Math.PI/32;
+    for(let i = 0; i < d; i++){
+      bumps.push({z:depth-i,theta:pos-1,b:.2+Math.random()*.2});
+      coins.push({z:depth-i,theta:coinPos,b:.2+Math.random()*.2});
+      bumps.push({z:depth-i,theta:pos+1,b:.2+Math.random()*.2});
+    }
+  }
   spawnEnemy=()=>{
     enemies.push({
       z: depth,
@@ -1354,7 +1415,6 @@ drawScores=()=>{
   spawnCoin=(a=1)=>{
     for(let i = 0; i < a; i++){
       coins.push({z:depth,theta:Math.random()*Math.PI*2-Math.PI,b:.2+Math.random()*.2});
-      //bumps.push({z:depth, theta:15, b:.2+Math.random()*.2});
     }
   }
   spawnPowerup=()=>{
@@ -1368,9 +1428,10 @@ drawScores=()=>{
     gunsActive[retractSpoke.indexOf(retractSpeed)]=0;
   }
   spawnSpoke=()=>{
-    sound=new Audio("powerup.ogg");
-    sound.volume=.8;
-    sound.play()
+    playSound(snd.powerup, 1, 0, .8, 0);
+    // sound=new Audio("powerup.ogg");
+    // sound.volume=.8;
+    // sound.play()
     H=0;
     for(let i=0;i<spokes+1;++i){
       if(gunsActive[i])H++;
@@ -1455,6 +1516,13 @@ drawScores=()=>{
     ckey=0;
     rkey=0;
     ctrlkey=0;
+    mkey=0;
+    pkey=0;
+  }
+
+  soundToggle=()=>{
+    muted = !muted;
+    audioMaster.gain.value = muted ? 0 : 1;
   }
 
   onkeydown=e=>{
@@ -1468,6 +1536,8 @@ drawScores=()=>{
       case 67:ckey=1;break;
       case 82:rkey=1;break;
       case 17:ctrlkey=1;break;
+      case 77:mkey=1;break;
+      case 80:pkey=1;break;
     }
   }
 
@@ -1482,10 +1552,10 @@ drawScores=()=>{
       case 67:ckey=0;break;
       case 82:rkey=0;break;
       case 17:ctrlkey=0;break;
-
-
+      case 77:mkey=0;soundToggle();break;
+      case 80:pkey=0;break;
     }
   }
 
-  init();
+  load();
 })();
