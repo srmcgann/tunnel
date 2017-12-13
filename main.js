@@ -9,7 +9,7 @@
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
   bumpsAmount = 1,bumpVar=0,powerUpGet = false,squeeze=1,score=0,
-  lastSpokeScore=0,spokePowerup=50000,spokeLose=spokeGet=horz=vert=0,retractSpeed=40;
+  lastSpokeScore=0,spokePowerup=50000,spokeLose=spokeGet=horz=vert=0,retractSpeed=20;
 
   function makeHttpObject() {
     try {return new XMLHttpRequest();}
@@ -663,9 +663,7 @@
     dt = Math.min(1, (now - last) / 1000);
     t += dt;
     if(paused){
-      renderTarget = SCREEN;
-      clear(30);
-      text([ 'PAUSED', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
+      drawPause();
     }else{
       flip^=(t%300==0?1:0)
       if(firstRun){
@@ -679,6 +677,22 @@
 
     render(dt);
     requestAnimationFrame(loop);
+  }
+
+  drawPause=()=>{
+
+    pal = palDefault;
+    clear(30);
+    let i = 1000;
+    while(i--){
+      pset(Math.random()*WIDTH, Math.random()*HEIGHT, 28);
+    }
+    text([ 'CONTROLS',
+    WIDTH/2, HEIGHT/2, 2, 3, 'center', 'top', 2, 11 ]);
+    text([ 'LEFT CTRL OR X TO SHOOT\nARROWS TO ROTATE\nUP ARROW TO SQUEEZE GUNS\nP TO PAUSE, M TO MUTE',
+    WIDTH/2, HEIGHT/2+24, 1, 3, 'center', 'top', 1, 22 ]);
+
+    text([ 'PAUSED', WIDTH/2, HEIGHT/2-100, 4, 15, 'center', 'top', 4, t/4%10, 4, 7, 3]);
   }
 
   drawTitle=()=>{
@@ -1079,8 +1093,8 @@
     for(let i=0;i<bumps.length;i++){
       if(bumps[i].z<0)bumps.splice(i,1);
     }
-    
-    
+
+
     // move reticle to last spoke, if there's only 1 remaining...
     let count=tTheta=0;
     for(let i=spokes;i--;){
