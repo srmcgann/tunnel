@@ -532,6 +532,7 @@
 
   function startup(){
 
+    if(typeof highScores[0] == "undefined")getHighScores();
     gunsActive = Array(99).fill(1);
     retractSpoke = Array(99).fill(0);
     enemiesKilledThisLevel=0
@@ -802,7 +803,7 @@
 
     if(spokeGet > 0){
       spokeGet = (spokeGet - .05).clamp(0,1);
-      for(i=spokes;i--;){
+      for(i=0;i<spokes;i++){
         if(gunsActive[i]){
           let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
           //X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
@@ -861,11 +862,10 @@
       //move down the tunnel
       e.z-=speed/500;
       //e.theta+=.01;
-
       //check for collision with player
       if(Math.abs(e.z - playerZ+1) < 1){
-        for(let i = 0; i < spokes; ++i){
-          if(gunsActive[i]){
+        for(let i = spokes; i--; ){
+          if(gunsActive[i] && !retractSpoke[i]){
             let p=playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze
             while(p>Math.PI)p-=Math.PI*2
             while(p<-Math.PI)p+=Math.PI*2
@@ -874,6 +874,7 @@
               if(Math.abs(e.theta - p) < .2 ){
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
+                console.log(spokes)
                 spawnSpoke();
                 //powerupGet = true;
                 spawnBubble(X,Y,playerZ,50);
@@ -891,7 +892,6 @@
         e.theta = Math.random() * (Math.PI*2) - Math.PI;
       }
     })//end powerup check
-
     //coins check
     coins.sort(function(a,b){return b.z - a.z});
     coins.forEach(function(e, eIndex, eArr){
@@ -991,7 +991,7 @@
       // sound.volume=.1;
       // sound.play();
       shotTimer=t+shotInterval
-      for(i=spokes;i--;){
+      for(i=0;i<spokes;i++){
         if(gunsActive[i] && !retractSpoke[i]){
           let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
           bullets.push({
@@ -1097,7 +1097,7 @@
 
     // move reticle to last spoke, if there's only 1 remaining...
     let count=tTheta=0;
-    for(let i=spokes;i--;){
+    for(let i=0;i<spokes;i++){
       if(gunsActive[i]){
         count++;
         tTheta=playerTheta+Math.PI*2/(spokes-spokeGet)*((i+.5)-spokes/2)*squeeze
@@ -1106,7 +1106,7 @@
     if(count==1){
       playerTheta=tTheta;
       spokes=1
-      for(let i=spokes;i--;)gunsActive[i]=0
+      for(let i=0;i<spokes;i++)gunsActive[i]=0
       gunsActive[0]=1
     }
   }
@@ -1331,8 +1331,8 @@
                 if(retractSpoke[i]<retractSpeed){
                   retractSpoke[i]++
                 }else{
-                  loseSpoke();
-                  retractSpoke[i]=0
+                  gunsActive[i]=0;
+                  retractSpoke[i]=0;
                 }
               }
               cursorColor = (i-spokes/2+.5)|0?spokeColor:22;
@@ -1361,7 +1361,7 @@
     renderTarget = SCREEN;
     outline(BUFFER, SCREEN, 12,11,13,14);
     text([ 'LEVEL ' + level, WIDTH/2-200, 10, 2, 15, 'left', 'top', 1, 9, ]);
-    text([ 'HI SCORE\n' + parseInt(highScores[0].score), WIDTH/2+200, 10, 2, 8, 'right', 'top', 1, 9, ]);
+    if(typeof highScores[0] != "undefined")text([ 'HI SCORE\n' + parseInt(highScores[0].score), WIDTH/2+200, 10, 2, 8, 'right', 'top', 1, 9, ]);
 
     if(t<=levelUpDisplayTimer){
       renderTarget = BUFFER; clear(0);
@@ -1460,20 +1460,12 @@
       size: 15
     })
   }
-  loseSpoke=()=>{
-    gunsActive[retractSpoke.indexOf(retractSpeed)]=0;
-  }
   spawnSpoke=()=>{
     playSound(snd.powerup, 1, 0, .8, 0);
-    // sound=new Audio("powerup.ogg");
-    // sound.volume=.8;
-    // sound.play()
-    H=0;
-    for(let i=0;i<spokes+1;++i){
-      if(gunsActive[i])H++;
-    }
-    spokes=H;
-    gunsActive[gunsActive.indexOf(0)] = 1;
+    var H=0;
+    for(var i=0;i<spokes;i++)if(gunsActive[i])H++;
+    spokes=H+1;
+    gunsActive = Array(99).fill(1);
     lastSpokeScore = score;
     spokeGet = 1;
   }
@@ -1594,9 +1586,13 @@
   }
 
   window.addEventListener('blur', function (event) {
+    muted = true;
+    audioMaster.gain.value = 0;
     paused = true;
   }, false);
   window.addEventListener('focus', function (event) {
+    muted = false;
+    audioMaster.gain.value = 1;
     paused = false;
   }, false);
 
