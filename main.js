@@ -4,7 +4,7 @@
   level=1,
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],gunsActive=[],retractSpoke=[],bumps=[],powerups=[],coins=[],LHS=[],
-  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false, paused = false, brightness = 15,
+  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false, paused = false, brightness = 0,
   depth,LUT = [],w,h,v,s,
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
@@ -523,6 +523,10 @@
       firstRun=1;
       loop();
     }
+
+    fade = true;
+    flip = true;
+    brightness = 31;
   }
 
   function startup(){
@@ -653,26 +657,18 @@
   }
 
 
-  fade = true;
-  flip = true;
-  brightness = 31;
   loop=(dt)=>{
-    let now = new Date().getTime();
-    dt = Math.min(1, (now - last) / 1000);
-    t += dt;
+      let now = new Date().getTime();
+      dt = Math.min(1, (now - last) / 1000);
+      t += dt;
     if(paused){
       drawPause();
     }else{
-      fade^=(t%150==0?1:0)
-      flip^=(t%300==0?1:0)
       if(firstRun){
+        flip^=!(t%256)
+        if(t%256>220)darker();
+        if(t%256<15)brighter();
         flip?drawTitle():drawScores()
-        if(fade){
-          if(brightness > 15 && t%2<1)brighter();
-        }
-        else{
-          if(brightness < 30 && t%2<1)darker();
-        }
       }else{
         step(dt);
         draw(dt);
@@ -722,6 +718,7 @@
     if(spacekey){
       spokes=3;
       level=1;
+      t=0;
       startup()
     }
   }
@@ -737,12 +734,12 @@
         }else{
           var score = "...";
         }
-        if(LHS.length && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
+        if(i< highScores.length-1 && typeof LHS[0] != "undefined" && LHS[0].name.toUpperCase()==highScores[i].name.toUpperCase() && LHS[0].score==highScores[i].score){
           color=12;
         }else{
           color=1;
         }
-        text([ score, 10, HEIGHT/2-120+i*20, 8, 15, 'left', 'top', 2, color, 4, 7, 3]);
+        text([ score, 5, HEIGHT/2-120+i*20, 6, 15, 'left', 'top', 2, color, 4, 7, 3]);
       }
       outline(BUFFER, SCREEN, 6,9,6,3);
       renderTarget = SCREEN;
@@ -751,12 +748,13 @@
       text([ 'HIT SPACE TO START', WIDTH/2, HEIGHT/2-100+210, 4, 15, 'center', 'top', 2, t/4%10, 4, 7, 3]);
     }else{
       clear(0);
-        renderTarget = SCREEN;
-        text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
+      renderTarget = SCREEN;
+      text([ 'LOADING\nHIGH SCORES', WIDTH/2, 80, 8, 15, 'center', 'top', 4, 11, ]);
     }
     if(spacekey){
       spokes=3;
       level=1;
+      t=0;
       startup()
     }
   }
@@ -881,9 +879,7 @@
               if(Math.abs(e.theta - p) < .2 ){
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
-                console.log(spokes)
                 spawnSpoke();
-                //powerupGet = true;
                 spawnBubble(X,Y,playerZ,50);
                 score+=100*spokes;
                 eArr.splice(eIndex, 1);
@@ -945,7 +941,7 @@
     if(!gameInPlay && !postedHighScore){
       postedHighScore=1;
       postHighScore();
-    }
+   }
 
     //handle bump collision
     bumps.forEach(function(e, eIndex, eArr){
@@ -987,7 +983,8 @@
         bumps=[];
         powerups=[];
         score=0;
-        level=1
+        level=1;
+        t=0;
         startup()
       }
     }
@@ -1154,7 +1151,6 @@
         //modify the color by Z with LUT, first sprite in sheet
         lutcolor = (Z.map(2,13, 15,29)|0).clamp(15, 28);
         cursorColor = LUT[lutcolor][55];
-        //cursorColor = LUT[lutcolor][55];
         moveTo3d(X,Y,Z);
         if(bump!=1)cursorColor = 5;
         if(skip){
@@ -1260,14 +1256,8 @@
         if(m==(Z|0)){ //for proper drawing order ;)
           X=S(en.theta)*.8+S(s*2*j*Z+d)*3/FOV*300-f
           Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
-
-          //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
-          // if(en.health > 1){
-            rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
-          // }else {
-          //   rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2);
-          // }
+          rspr3d(X,Y,Z, sprites.purpleBall, 3, en.theta+Math.PI*2, gameInPlay? enemyPal : gameoverPal );
         }
       }
       pal = LUT[brightness];
@@ -1280,13 +1270,8 @@
         if(m==(Z|0)){ //for proper drawing order ;)
           X=S(en.theta)*.8+S(s*2*j*Z+d)*3/FOV*300-f
           Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
-
-          //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
           rspr3d(X,Y,Z, sprites.coin, 3, en.theta+Math.PI*2+t/2);
-          // fcir(X,Y,Z,40);
-          // cursorColor = 11;
-          // fcir(X,Y,Z,30);
         }
       }
       pal = LUT[brightness];
@@ -1299,8 +1284,6 @@
         if(m==(Z|0)){ //for proper drawing order ;)
           X=S(en.theta)*.8+S(s*2*j*Z+d)*3/FOV*300-f
           Y=C(en.theta)*.8+C(s*3*j*Z+e)*.5/FOV*300-g
-
-          //  fcir(X,Y,Z,40);
           renderSource = SPRITES;
           rspr3d(X,Y,Z, sprites.star, 3, en.theta+Math.PI*2+t/30, gameInPlay? enemyPal : gameoverPal );
         }
@@ -1357,15 +1340,18 @@
       }
     }
     if(!gameInPlay){
-        bullets=[];
-        pal = gameoverPal
-        renderTarget = BUFFER;
-        clear(0);
-        text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 1, 10, 10, 5 ]);
-        text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, 1+t/9%10, 3, 10, 3]);
-        outline(BUFFER, SCREEN, 6,9,6,3);
-        renderTarget = SCREEN; renderSource = BUFFER; spr();
-    }
+      bullets=[];
+      pal = gameoverPal
+      renderTarget = BUFFER;
+      clear(0);
+      text([ 'GAME\nOVER', WIDTH/2, 60, 8, 15, 'center', 'top', 9, 1, 10, 10, 5 ]);
+      text([ 'HIT THE SPACEBAR: ', WIDTH/2+20, HEIGHT/2+80, 8, 15, 'center', 'top', 3, 1+t/9%10, 3, 10, 3]);
+      outline(BUFFER, SCREEN, 6,9,6,3);
+      renderTarget = SCREEN; renderSource = BUFFER; spr();
+      flip=false;
+      brightness=30;
+      t=0
+   }
     renderTarget = BUFFER;
     clear(0);
     text([ '' + score, WIDTH/2, 10, 3, 15, 'center', 'top', 2, 9, ]);
@@ -1373,8 +1359,7 @@
     outline(BUFFER, SCREEN, 12,11,13,14);
     text([ 'LEVEL ' + level, WIDTH/2-200, 10, 2, 15, 'left', 'top', 1, 9, ]);
     if(typeof highScores[0] != "undefined")text([ 'HI SCORE\n' + parseInt(highScores[0].score), WIDTH/2+200, 10, 2, 8, 'right', 'top', 1, 9, ]);
-
-    if(t<=levelUpDisplayTimer){
+    if(t<=levelUpDisplayTimer && gameInPlay){
       renderTarget = BUFFER; clear(0);
       text([ 'LEVEL: ' + level, WIDTH/2, HEIGHT/2-40, 8, 15, 'center', 'top', 6, 16,  10, 10, 3]);
       outline(BUFFER, SCREEN, 11,10,12,13);
@@ -1536,10 +1521,11 @@
 
   reset=()=>{
     //console.log('reset')
-    brightness = 7;
+    brightness = 30;
     pal = LUT[brightness];
     level=1;
     spokes = 3;
+    shotTimer=0;
     gunsActive = Array(99).fill(1);
     playerTheta = 0;
     gameInPlay=true
@@ -1564,19 +1550,18 @@
   }
 
   soundToggle=()=>{
+    if(paused)muted=0
     muted = !muted;
     audioMaster.gain.value = muted ? 0 : 1;
   }
 
   darker=()=>{
-    brightness = (brightness + 1).clamp(0,31)
-    console.log(brightness);
+    brightness = (brightness + 1).clamp(0,30)
     pal = LUT[brightness];
   }
 
   brighter=()=>{
     brightness = (brightness - 1).clamp(0,31)
-    console.log(brightness);
     pal = LUT[brightness];
   }
 
