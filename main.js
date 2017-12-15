@@ -4,7 +4,7 @@
   level=1,
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],gunsActive=[],retractSpoke=[],bumps=[],powerups=[],coins=[],LHS=[],
-  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false, paused = false,
+  spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false, paused = false, brightness = 15,
   depth,LUT = [],w,h,v,s,
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
@@ -515,15 +515,10 @@
     depth=35
     spritesheet.onload = function(){
       imageToRam(spritesheet, SPRITES);
-      for(let i = 0; i < 30; ++i){
+      for(let i = 0; i < 32; ++i){
         LUT.push(ram.slice(SPRITES+WIDTH*i, SPRITES+WIDTH*i+64))
       }
-      //playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop = false)
       playSound(snd.song, 1, 0, .3, 1);
-      // soundtrack=new Audio("cantelope.mp3");
-      // soundtrack.loop=1;
-      // soundtrack.volume=.3;
-      // soundtrack.play();
       gameInPlay=0;
       firstRun=1;
       loop();
@@ -658,7 +653,9 @@
   }
 
 
+  fade = true;
   flip = true;
+  brightness = 31;
   loop=(dt)=>{
     let now = new Date().getTime();
     dt = Math.min(1, (now - last) / 1000);
@@ -666,9 +663,16 @@
     if(paused){
       drawPause();
     }else{
-      flip^=(t%300==0?1:0)
+      fade^=(t%150==0?1:0)
+      flip^=(t%360==0?1:0)
       if(firstRun){
-        flip ? drawTitle() : drawScores();
+        flip?drawTitle():drawScores()
+        if(fade){
+          if(brightness > 15 && t%2<1)brighter();
+        }
+        else{
+          if(brightness < 30 && t%2<1)darker();
+        }
       }else{
         step(dt);
         draw(dt);
@@ -682,7 +686,7 @@
 
   drawPause=()=>{
 
-    pal = palDefault;
+    pal = LUT[brightness];
     clear(30);
     let i = 1000;
     while(i--){
@@ -695,7 +699,9 @@
 
     text([ 'PAUSED', WIDTH/2, HEIGHT/2-100, 4, 15, 'center', 'top', 4, t/4%10, 4, 7, 3]);
   }
+  drawMenu=()=>{
 
+  }
   drawTitle=()=>{
     renderTarget = SCREEN; clear(30);
     renderTarget = BUFFER; clear(0);
@@ -765,7 +771,7 @@
 
 
     //check for reset
-    if(rkey)reset();
+    //if(rkey)reset();
     //enemies=[];
 
     // continually spawn enemies
@@ -839,6 +845,7 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSplosion(X,Y,playerZ,150);
+                brightness = 1;
                 retractSpoke[i]=1;
                 spokeLose = 1;
                 //spokes--;
@@ -957,6 +964,7 @@
                 X=S(s*2*j*playerZ+d)*3/FOV*300-f,Y=C(s*3*j*playerZ+t/(1000/vert))*.5/FOV*300-g;
                 X+=S(p = squeeze < .02 ? playerTheta : playerTheta+Math.PI*2/spokes*((i+.5)-spokes/2)*squeeze),Y+=C(p);
                 spawnSplosion(X,Y,playerZ,150);
+                brightness = 1;
                 retractSpoke[i]=1;
                 //spokes--;
                 //playerTheta=e.theta+Math.PI
@@ -1109,12 +1117,15 @@
       for(let i=0;i<spokes;i++)gunsActive[i]=0
       gunsActive[0]=1
     }
-  }
+}
 
 
   draw=(dt)=>{
 
     clear(0);
+
+    if(brightness > 15)brighter();
+    if(brightness < 15)darker();
     //tunnel draw routine
     if(gameInPlay){
       text([ 'KILLS TO\nNEXT LEVEL', WIDTH/2+160, HEIGHT/2+60 , 2, 3, 'center', 'top', 1, 30])
@@ -1259,7 +1270,7 @@
           // }
         }
       }
-      pal = palDefault;
+      pal = LUT[brightness];
 
       //coin draw routine
       cursorColor = 13;
@@ -1278,7 +1289,7 @@
           // fcir(X,Y,Z,30);
         }
       }
-      pal = palDefault;
+      pal = LUT[brightness];
 
 
       //powerup draw routine
@@ -1294,7 +1305,7 @@
           rspr3d(X,Y,Z, sprites.star, 3, en.theta+Math.PI*2+t/30, gameInPlay? enemyPal : gameoverPal );
         }
       }
-      pal = palDefault;
+      pal = LUT[brightness];
 
 
       //player draw routine
@@ -1369,6 +1380,8 @@
       outline(BUFFER, SCREEN, 11,10,12,13);
       renderTarget = SCREEN; renderSource = BUFFER; spr();
     }
+
+
   }//end draw()
 
   levelUp=()=>{
@@ -1523,7 +1536,8 @@
 
   reset=()=>{
     //console.log('reset')
-    pal = palDefault
+    brightness = 7;
+    pal = LUT[brightness];
     level=1;
     spokes = 3;
     gunsActive = Array(99).fill(1);
@@ -1546,11 +1560,24 @@
     ctrlkey=0;
     mkey=0;
     pkey=0;
+    startup();
   }
 
   soundToggle=()=>{
     muted = !muted;
     audioMaster.gain.value = muted ? 0 : 1;
+  }
+
+  darker=()=>{
+    brightness = (brightness + 1).clamp(0,31)
+    console.log(brightness);
+    pal = LUT[brightness];
+  }
+
+  brighter=()=>{
+    brightness = (brightness - 1).clamp(0,31)
+    console.log(brightness);
+    pal = LUT[brightness];
   }
 
   onkeydown=e=>{
@@ -1577,8 +1604,8 @@
       case 39:rightkey=0;break;
       case 40:downkey=0;break;
       case 88:xkey=0;break;
-      case 67:ckey=0;break;
-      case 82:rkey=0;break;
+      case 67:ckey=0;brightness=1;break;
+      case 82:rkey=0;brightness=30;break;
       case 17:ctrlkey=0;break;
       case 77:mkey=0;soundToggle();break;
       case 80:pkey=0;paused=!paused;soundToggle();break;
