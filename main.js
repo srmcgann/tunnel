@@ -538,6 +538,7 @@
     levelUpDisplayTimer=t+100;
     gameInPlay=1;
     firstRun=0;
+    shotTimer=0;
     postedHighScore=0;
     switch(level){
       case 1:  // no bumps, just enemies
