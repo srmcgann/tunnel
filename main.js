@@ -849,7 +849,8 @@
       else if(buttonPressed(gp.buttons[2]) ) playerTheta+=.05;
 
       if(Math.abs(gp.axes[0]) > .1)playerTheta+= .06 * gp.axes[0]; //allow for deadzone
-      if(Math.abs(gp.axes[5]) > -.9)squeeze = (squeeze - .05).clamp(.01, 1);
+      if(Math.abs(gp.axes[5]) != 0)squeeze = (gp.axes[5]).map(1, -1, .01, 1);
+      else squeeze = 1;
 
       // shoot guns
       if( ( buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ) && shotTimer<t && gameInPlay){
