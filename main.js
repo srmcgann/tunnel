@@ -5,7 +5,7 @@
   highScores=[],bullets = [],splosions = [],
   bubbles = [],enemies = [],gunsActive=[],retractSpoke=[],bumps=[],powerups=[],coins=[],LHS=[],
   spritesheet,gameOverPal,enemyPal,last = 0,sides, snd = {}, muted = false, paused = false, brightness = 0,
-  depth,LUT = [],w,h,v,s,
+  depth,LUT = [],w,h,v,s,gp,
   OPZ=playerZ=5,playerTheta=0,
   ctrlkey=spacekey=upkey=downkey=leftkey=rightkey=xkey=ckey=rkey=wkey=ekey=0,shotTimer=0,
   bumpsAmount = 1,bumpVar=0,powerUpGet = false,squeeze=1,score=0,
@@ -659,6 +659,8 @@
 
 
   loop=(dt)=>{
+    var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+    gp = gamepads[0];
       let now = new Date().getTime();
       dt = Math.min(1, (now - last) / 1000);
       t += dt;
@@ -696,9 +698,7 @@
 
     text([ 'PAUSED', WIDTH/2, HEIGHT/2-100, 4, 15, 'center', 'top', 4, t/4%10, 4, 7, 3]);
   }
-  drawMenu=()=>{
 
-  }
   drawTitle=()=>{
     renderTarget = SCREEN; clear(30);
     renderTarget = BUFFER; clear(0);
@@ -721,6 +721,14 @@
       level=1;
       t=0;
       startup()
+    }
+    if(gp){
+      if( buttonPressed(gp.buttons[4]) || buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ){
+        spokes=3;
+        level=1;
+        t=0;
+        startup()
+      }
     }
   }
 
@@ -757,6 +765,14 @@
       level=1;
       t=0;
       startup()
+    }
+    if(gp){
+      if(buttonPressed(gp.buttons[4]) || buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ){
+        spokes=3;
+        level=1;
+        t=0;
+        startup()
+      }
     }
   }
 
@@ -804,6 +820,58 @@
       squeeze = (squeeze - .05).clamp(.01, 1)
     }else{
       squeeze = (squeeze + .05).clamp(.01, 1)
+    }
+
+    // shoot guns
+    if( (xkey || ctrlkey) && shotTimer<t && gameInPlay){
+      playSound(snd.pew, 1, 0, .1, false);
+      // sound=new Audio("pew.ogg");
+      // sound.volume=.1;
+      // sound.play();
+      shotTimer=t+shotInterval
+      for(i=0;i<spokes;i++){
+        if(gunsActive[i] && !retractSpoke[i]){
+          let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
+          bullets.push({
+            z:playerZ,
+            theta:t
+          });
+          z=playerZ;
+          X=S(t)+S(s*2*j*z+d)*3/FOV*300-f;
+          Y=C(t)+C(s*3*j*z+e)*.5/FOV*300-g;
+          //spawnBubble(X,Y,z,2);
+        }
+      }
+    }
+
+    if(gp){
+      if(buttonPressed(gp.buttons[3]) ) playerTheta-=.05;
+      else if(buttonPressed(gp.buttons[2]) ) playerTheta+=.05;
+
+      if(Math.abs(gp.axes[0]) > .1)playerTheta+= .06 * gp.axes[0]; //allow for deadzone
+      if(Math.abs(gp.axes[5]) > -.9)squeeze = (gp.axes[5]).map(1, -1, .01, 1);
+
+      // shoot guns
+      if( ( buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ) && shotTimer<t && gameInPlay){
+        playSound(snd.pew, 1, 0, .1, false);
+        // sound=new Audio("pew.ogg");
+        // sound.volume=.1;
+        // sound.play();
+        shotTimer=t+shotInterval
+        for(i=0;i<spokes;i++){
+          if(gunsActive[i] && !retractSpoke[i]){
+            let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
+            bullets.push({
+              z:playerZ,
+              theta:t
+            });
+            z=playerZ;
+            X=S(t)+S(s*2*j*z+d)*3/FOV*300-f;
+            Y=C(t)+C(s*3*j*z+e)*.5/FOV*300-g;
+            //spawnBubble(X,Y,z,2);
+          }
+        }
+      }
     }
 
     if(spokeGet > 0){
@@ -988,30 +1056,20 @@
         t=0;
         startup()
       }
-    }
-
-    // shoot guns
-    if((xkey || ctrlkey) && shotTimer<t && gameInPlay){
-      playSound(snd.pew, 1, 0, .1, false);
-      // sound=new Audio("pew.ogg");
-      // sound.volume=.1;
-      // sound.play();
-      shotTimer=t+shotInterval
-      for(i=0;i<spokes;i++){
-        if(gunsActive[i] && !retractSpoke[i]){
-          let t = playerTheta+(Math.PI*2/spokes*((i+.5)-spokes/2))*squeeze;
-          bullets.push({
-            z:playerZ,
-            theta:t
-          });
-          z=playerZ;
-          X=S(t)+S(s*2*j*z+d)*3/FOV*300-f;
-          Y=C(t)+C(s*3*j*z+e)*.5/FOV*300-g;
-          //spawnBubble(X,Y,z,2);
+      if(gp){
+        if(buttonPressed(gp.buttons[4]) || buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ){
+          bullets = [];
+          splosions = [];
+          enemies = [];
+          bumps=[];
+          powerups=[];
+          score=0;
+          level=1;
+          t=0;
+          startup()
         }
       }
     }
-
 
 
     //handle bullets
@@ -1566,6 +1624,13 @@
     pal = LUT[brightness];
   }
 
+  buttonPressed=(b)=> {
+    if (typeof(b) == "object") {
+      return b.pressed;
+    }
+    return b == 1.0;
+  }
+
   onkeydown=e=>{
     switch(e.which){
       case 32:spacekey=1;break;
@@ -1608,6 +1673,12 @@
     audioMaster.gain.value = 1;
     paused = false;
   }, false);
+  window.addEventListener("gamepadconnected", function(e) {
+  gp = navigator.getGamepads()[e.gamepad.index];
+  // console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+  //   gp.index, gp.id,
+  //   gp.buttons.length, gp.axes.length);
+});
 
   load();
 })();
