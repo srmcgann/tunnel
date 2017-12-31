@@ -723,7 +723,7 @@
       startup()
     }
     if(gp){
-      if( buttonPressed(gp.buttons[4]) || buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ){
+      if( buttonPressed(gp.buttons[4]) ){
         spokes=3;
         level=1;
         t=0;
@@ -767,7 +767,7 @@
       startup()
     }
     if(gp){
-      if(buttonPressed(gp.buttons[4]) || buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ){
+      if(buttonPressed(gp.buttons[4]) ){
         spokes=3;
         level=1;
         t=0;
@@ -849,7 +849,7 @@
       else if(buttonPressed(gp.buttons[2]) ) playerTheta+=.05;
 
       if(Math.abs(gp.axes[0]) > .1)playerTheta+= .06 * gp.axes[0]; //allow for deadzone
-      if(Math.abs(gp.axes[5]) > -.9)squeeze = (gp.axes[5]).map(1, -1, .01, 1);
+      if(Math.abs(gp.axes[5]) > -.9)squeeze = (squeeze - .05).clamp(.01, 1);
 
       // shoot guns
       if( ( buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ) && shotTimer<t && gameInPlay){
@@ -1057,7 +1057,7 @@
         startup()
       }
       if(gp){
-        if(buttonPressed(gp.buttons[4]) || buttonPressed(gp.buttons[13]) || buttonPressed(gp.buttons[11]) ){
+        if(buttonPressed(gp.buttons[4])){
           bullets = [];
           splosions = [];
           enemies = [];
